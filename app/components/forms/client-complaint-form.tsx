@@ -1,15 +1,15 @@
 "use client";
-import { BASE_URL, ScreenViewer } from "@/app/utils/base";
+import { ScreenViewer } from "@/app/utils/base";
 import { ScreenViewerEnum } from "@/app/utils/enums/screen-viewer.enum";
-import { COLLECTOR_REQ, REFRESH_TOKEN_REQ } from "@/app/utils/requests/refresh-token-req";
+import { COLLECTOR_REQ, getCookie } from "@/app/utils/requests/refresh-token-req";
 import { useAppDispatch } from "@/app/utils/store/hooks";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-export default function ClientComplaintForm() {
+export default function ClientComplaintForm({ closeForm }: { closeForm: () => void }) {
   const [data, setData] = useState({
     full_name: "",
     phone: "+20",
@@ -20,7 +20,6 @@ export default function ClientComplaintForm() {
     screen_viewer_password: "",
   });
   const dispatch = useAppDispatch();
-
   const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
     dispatch(
       openSnakeBar({
@@ -74,38 +73,30 @@ export default function ClientComplaintForm() {
     }
     return true;
   };
-  const { mutateAsync, isError, error, isPending } = useMutation({
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: async (payload: typeof data) => {
       const res = await axios.post(`http://localhost:5000/api/complaints/create`, payload, {
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${getCookie("access_token")}`,
+        },
       });
       return res.data;
     },
     onSuccess: (res) => {
-      console.log(res);
-      // dispatch(setCurrentUser(res.data))
-      // router.push("/");
+      closeForm();
       handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Created complaint successfully");
+      queryClient.invalidateQueries({ queryKey: ["complaints"] });
     },
     onError: (error: any) => {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
-      return false;
     },
   });
   const handleConfirm = async () => {
+    if (isPending) return;
     if (!vaildation()) return;
-    await mutateAsync(data);
+    await COLLECTOR_REQ(mutateAsync, data);
   };
-  useEffect(() => {
-    if (error?.status === 401) {
-      console.log("test");
-      const refetchFunc = async () => {
-        await COLLECTOR_REQ(mutateAsync, data);
-      };
-      refetchFunc();
-    }
-  }, [error]);
-  console.log("isPending => ", isPending);
   return (
     <div className="w-md bg-[#eee] p-3 rounded-md flex flex-col items-center">
       <h1 className="text-lg font-semibold text-black mx-auto w-fit">Create New Complaint</h1>

@@ -39,9 +39,17 @@ export const { setLoading, setCurrentUser, updateCurrentUser, clearUserData } = 
 
 export default userSlice.reducer;
 
-const selectCurrentUserName = (state: { worker: UserState }) => state.worker.currentUser?.user_name;
-const selectCurrentUserId = (state: { worker: UserState }) => state.worker.currentUser?.id;
-const selectCurrentUserRoles = (state: { worker: UserState }) => state.worker.currentUser?.roles;
-const selectUserIsLoading = (state: { worker: UserState }) => state.worker.isLoading;
+// Selectors typed against local shape to avoid importing RootState
+const selectCurrentUser = (state: { user: UserState }) => state.user.currentUser;
+const selectCurrentUserName = (state: { user: UserState }) => state.user.currentUser?.user_name;
+const selectCurrentUserId = (state: { user: UserState }) => state.user.currentUser?.id;
+const selectCurrentUserRoles = (state: { user: UserState }) => state.user.currentUser?.roles;
+const selectUserIsLoading = (state: { user: UserState }) => state.user.isLoading;
 
-export { selectUserIsLoading, selectCurrentUserName, selectCurrentUserId, selectCurrentUserRoles };
+export {
+  selectCurrentUser,
+  selectUserIsLoading,
+  selectCurrentUserName,
+  selectCurrentUserId,
+  selectCurrentUserRoles,
+};

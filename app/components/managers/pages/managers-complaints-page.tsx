@@ -1,25 +1,27 @@
 "use client";
 import ActiveComplaints from "@/app/components/clients/complaints/active-complaints";
-import BlackLayer from "@/app/components/common/black-layer/black-layer";
-import ClientComplaintForm from "@/app/components/forms/client-complaint-form";
-import ClientComplaintsTable from "@/app/components/tables/client-complaint-table";
-import { getClientComplaints } from "@/app/utils/requests/clients-requests";
-import { useAppDispatch } from "@/app/utils/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { fillAnalytics } from "@/app/utils/store/slices/analytics-slice";
-import { Button } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import ManagerComplaintsTable from "../../tables/manager-complaints-table";
+import { getManagersComplaints } from "@/app/utils/requests/managers-requests";
+import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
+import BlackLayer from "../../common/black-layer/black-layer";
+import ManagerComplaintForm from "../../forms/manager-complaint-form";
 
-export default function ComplaintsPage() {
-  const [createNewPopup, setCreateNewPopup] = useState(false);
+export default function ManagersComplaintsPage() {
   const dispatch = useAppDispatch();
+  const managerComplaintDetails = useAppSelector((state) =>
+    selectPopup(state, "managerComplaintDetails")
+  );
   useEffect(() => {
     dispatch(fillAnalytics({ analytics, chart }));
   }, []);
   const { data } = useQuery({
-    queryKey: ["complaints"],
+    queryKey: ["manager-complaints"],
     queryFn: async () => {
-      const result = await getClientComplaints();
+      const result = await getManagersComplaints();
       return result.data;
     },
   });
@@ -32,19 +34,19 @@ export default function ComplaintsPage() {
               <h1 className="font-bold text-xl text-black">All Complaints</h1>
               <p className="font-[300] text-[#888] text-xs">Dashboard Drill-down</p>
             </div>
-            <Button onClick={() => setCreateNewPopup(true)} variant="contained">
-              Create Complaint
-            </Button>
           </div>
-          <ClientComplaintsTable data={data?.complaints} />
+          <ManagerComplaintsTable data={data?.complaints} popup={"managerComplaintDetails"} />
         </div>
         <div className="w-[20%]">
           <ActiveComplaints />
         </div>
       </div>
-      {createNewPopup && (
-        <BlackLayer onClick={() => setCreateNewPopup(false)}>
-          <ClientComplaintForm closeForm={() => setCreateNewPopup(false)} />
+      {managerComplaintDetails.isOpen && (
+        <BlackLayer onClick={() => dispatch(closePopup({ popup: "managerComplaintDetails" }))}>
+          <ManagerComplaintForm
+            closeForm={() => dispatch(closePopup({ popup: "managerComplaintDetails" }))}
+            id={managerComplaintDetails.data?.id}
+          />
         </BlackLayer>
       )}
     </>

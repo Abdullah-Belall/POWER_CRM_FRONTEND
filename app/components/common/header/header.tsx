@@ -6,7 +6,7 @@ import { Avatar } from "@mui/material";
 
 export default function Header() {
   return (
-    <header className="w-full h-[140px] bg-lightgreen rounded-b-xl fixed top-0 left-0 overflow-hidden">
+    <header className="w-full z-[9] h-[140px] bg-lightgreen rounded-b-xl fixed top-0 left-0 overflow-hidden">
       <div className="w-full h-full relative">
         <h1 className="text-[180px] cube font-bold text-nowrap text-[#eeeeee06] absolute left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
           POWER SOFT

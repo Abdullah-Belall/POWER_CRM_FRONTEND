@@ -110,3 +110,7 @@ export const ComplaintStatusViewer = ({ status }: { status: ComplaintStatusEnum 
       );
   }
 };
+
+export const checkNull = (value: any, message: string) => {
+  return !value || value?.trim() === "" ? message : value;
+};

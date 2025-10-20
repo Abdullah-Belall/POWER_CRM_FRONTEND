@@ -7,6 +7,7 @@ import { useAppDispatch } from "../utils/store/hooks";
 import { openSnakeBar, SnakeBarTypeEnum } from "../utils/store/slices/snake-bar-slice";
 import { useRouter } from "next/navigation";
 import { setCurrentUser } from "../utils/store/slices/user-slice";
+import { setCookie } from "../utils/requests/refresh-token-req";
 
 export default function SignIn() {
   const lang = "ar";
@@ -46,6 +47,7 @@ export default function SignIn() {
       console.log(res);
       // dispatch(setCurrentUser(res.data))
       // router.push("/");
+      setCookie("access_token", res.access_token);
       handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Signed In successfully");
     },
     onError: (error: any) => {

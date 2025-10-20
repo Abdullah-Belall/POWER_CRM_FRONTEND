@@ -10,7 +10,17 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { useState } from "react";
 
-export default function MainTable({ rows, columns }: { columns: any[]; rows: any[] }) {
+export default function MainTable({
+  rows,
+  columns,
+  onRowClick,
+}: {
+  columns: any[];
+  rows: any[];
+  onRowClick?: (data: any) => void;
+}) {
+  const safeRows = rows ?? [];
+  const safeColumns = columns ?? [];
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -22,16 +32,18 @@ export default function MainTable({ rows, columns }: { columns: any[]; rows: any
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
-
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split(".").reduce((acc, key) => acc?.[key], obj);
+  };
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
       <TableContainer sx={{ maxHeight: 360 }}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
-              {columns.map((column, i) => (
+              {safeColumns.map((column, i) => (
                 <TableCell
-                  className="!bg-xlightgreen"
+                  className="!bg-xlightgreen !text-nowrap !text-center"
                   key={i}
                   align={column.align}
                   style={{ minWidth: column.minWidth }}
@@ -42,20 +54,26 @@ export default function MainTable({ rows, columns }: { columns: any[]; rows: any
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+            {safeRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => {
               return (
                 <TableRow
                   hover
                   className="hover:bg-xlightgreen!"
+                  onClick={() => (onRowClick ? onRowClick(row) : "")}
                   role="checkbox"
                   tabIndex={-1}
-                  key={row.code}
+                  key={i}
                 >
-                  {columns.map((column, i) => {
-                    const value = row[column.id];
+                  {safeColumns.map((column, i) => {
+                    const value = getNestedValue(row, column.id);
+                    const content = column.render
+                      ? column.render(row)
+                      : column.format && typeof value === "number"
+                      ? column.format(value)
+                      : value;
                     return (
-                      <TableCell key={i} align={column.align}>
-                        {column.format && typeof value === "number" ? column.format(value) : value}
+                      <TableCell className="!text-center" key={i} align={column.align}>
+                        {content}
                       </TableCell>
                     );
                   })}
@@ -68,7 +86,7 @@ export default function MainTable({ rows, columns }: { columns: any[]; rows: any
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={rows.length}
+        count={safeRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

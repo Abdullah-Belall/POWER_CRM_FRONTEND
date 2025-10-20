@@ -3,8 +3,17 @@ import MainTable from "@/app/components/tables/main-table";
 import { TableColumnInterface } from "@/app/utils/interfaces/table.interface";
 import { ClientComplaintInterface } from "@/app/utils/interfaces/clients.interface";
 import { checkNull, ComplaintStatusViewer, formatDate, ScreenViewer } from "@/app/utils/base";
+import { useAppDispatch } from "@/app/utils/store/hooks";
+import { openPopup } from "@/app/utils/store/slices/popup-slice";
 
-export default function ClientComplaintsTable({ data }: { data: ClientComplaintInterface[] }) {
+export default function ManagerComplaintsTable({
+  data,
+  popup,
+}: {
+  data: ClientComplaintInterface[];
+  popup: string;
+}) {
+  const dispatch = useAppDispatch();
   const formateData = data?.map((e) => ({
     ...e,
     created_at: formatDate(e.created_at),
@@ -14,13 +23,20 @@ export default function ClientComplaintsTable({ data }: { data: ClientComplaintI
   }));
   return (
     <div>
-      <MainTable columns={columns} rows={formateData} />
+      <MainTable
+        columns={columns}
+        rows={formateData}
+        onRowClick={(data) => {
+          dispatch(openPopup({ popup: popup as any, data }));
+        }}
+      />
     </div>
   );
 }
 
 const columns: TableColumnInterface[] = [
   { id: "index", label: "#" },
+  { id: "user.user_name", label: "Company" },
   { id: "full_name", label: "User" },
   { id: "phone", label: "Phone" },
   { id: "title", label: "Title", minWidth: 140 },

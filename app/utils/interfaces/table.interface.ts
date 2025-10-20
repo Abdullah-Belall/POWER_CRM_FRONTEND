@@ -12,4 +12,5 @@ export interface TableColumnInterface {
   minWidth?: number;
   align?: "right";
   format?: (value: number) => string;
+  render?: (row: any) => React.ReactNode;
 }
