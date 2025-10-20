@@ -39,11 +39,15 @@ export default function UsersTable({
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (data: any) => {
-      const res = await axios.post(`http://localhost:5000/api/complaints-assigner/assign`, data, {
-        headers: {
-          Authorization: `Bearer ${getCookie("access_token")}`,
-        },
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints-assigner/assign`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie("access_token")}`,
+          },
+        }
+      );
       return res.data;
     },
     onSuccess: () => {

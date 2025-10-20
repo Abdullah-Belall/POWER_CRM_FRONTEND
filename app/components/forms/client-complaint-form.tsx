@@ -76,11 +76,15 @@ export default function ClientComplaintForm({ closeForm }: { closeForm: () => vo
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (payload: typeof data) => {
-      const res = await axios.post(`http://localhost:5000/api/complaints/create`, payload, {
-        headers: {
-          Authorization: `Bearer ${getCookie("access_token")}`,
-        },
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints/create`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie("access_token")}`,
+          },
+        }
+      );
       return res.data;
     },
     onSuccess: (res) => {

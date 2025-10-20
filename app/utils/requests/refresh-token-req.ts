@@ -3,9 +3,12 @@ const unCountedMessage = `There is a problem, please call support.`;
 
 export const REFRESH_TOKEN_REQ = async () => {
   try {
-    const response = await axios.get(`http://localhost:5000/api/auth/refresh-token`, {
-      withCredentials: true,
-    });
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh-token`,
+      {
+        withCredentials: true,
+      }
+    );
     if (response?.data?.access_token) {
       setCookie("access_token", response?.data?.access_token);
     }

@@ -66,7 +66,7 @@ export default function ManagerComplaintForm({
   const startSolve = useMutation({
     mutationFn: async (complaint_id: string) => {
       const res = await axios.post(
-        `http://localhost:5000/api/complaints-solving/${complaint_id}/start-solving`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints-solving/${complaint_id}/start-solving`,
         {},
         {
           headers: {
@@ -116,7 +116,7 @@ export default function ManagerComplaintForm({
   const finishSolve = useMutation({
     mutationFn: async (dataBody) => {
       const res = await axios.post(
-        `http://localhost:5000/api/complaints/${data?.id}/finish`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints/${data?.id}/finish`,
         dataBody,
         {
           headers: {

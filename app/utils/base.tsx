@@ -2,7 +2,7 @@ import { SiAnydesk, SiTeamviewer } from "react-icons/si";
 import { ScreenViewerEnum } from "./enums/screen-viewer.enum";
 import { ComplaintStatusEnum } from "./enums/complaint-status-enum";
 
-export const BASE_URL = (process.env.BASE_SERVER_URL || "http://localhost:5000") + "api";
+export const BASE_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000") + "api";
 
 export const formatDate = (input: string | Date) => {
   let date: Date;

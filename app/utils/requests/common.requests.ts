@@ -4,7 +4,7 @@ import { ComplaintStatusEnum } from "../enums/complaint-status-enum";
 
 export const getProfile = () =>
   COLLECTOR_REQ(async () => {
-    const res = await axios.get("http://localhost:5000/api/users/profile", {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`, {
       headers: {
         Authorization: `Bearer ${getCookie("access_token")}`,
       },
@@ -21,7 +21,7 @@ export const changeComplaintStatus = ({
 }) =>
   COLLECTOR_REQ(async () => {
     const res = await axios.post(
-      `http://localhost:5000/api/complaints/${id}/finish`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints/${id}/finish`,
       { status },
       {
         headers: {

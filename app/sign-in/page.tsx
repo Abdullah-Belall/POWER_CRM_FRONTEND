@@ -38,9 +38,13 @@ export default function SignIn() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (payload: typeof data) => {
-      const res = await axios.post("http://localhost:5000/api/auth/sign-in", payload, {
-        withCredentials: true,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/sign-in`,
+        payload,
+        {
+          withCredentials: true,
+        }
+      );
       return res.data;
     },
     onSuccess: (res) => {

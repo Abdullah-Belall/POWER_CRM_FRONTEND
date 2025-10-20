@@ -3,7 +3,7 @@ import { COLLECTOR_REQ, getCookie } from "./refresh-token-req";
 
 export const getManagersComplaints = () =>
   COLLECTOR_REQ(async () => {
-    const res = await axios.get("http://localhost:5000/api/complaints/managers", {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints/managers`, {
       headers: {
         Authorization: `Bearer ${getCookie("access_token")}`,
       },
@@ -12,16 +12,19 @@ export const getManagersComplaints = () =>
   });
 export const getComplaint = (complaint_id: string) =>
   COLLECTOR_REQ(async () => {
-    const res = await axios.get(`http://localhost:5000/api/complaints/${complaint_id}`, {
-      headers: {
-        Authorization: `Bearer ${getCookie("access_token")}`,
-      },
-    });
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints/${complaint_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getCookie("access_token")}`,
+        },
+      }
+    );
     return { done: true, data: res.data };
   });
 export const getSupporters = () =>
   COLLECTOR_REQ(async () => {
-    const res = await axios.get(`http://localhost:5000/api/users/supporters`, {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/supporters`, {
       headers: {
         Authorization: `Bearer ${getCookie("access_token")}`,
       },
