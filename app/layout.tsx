@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${poppins.variable} ${playwriteUsModern.variable} !text-bg font-poppins min-h-dvh w-full antialiased`}
+        className={`${poppins.variable} ${playwriteUsModern.variable} !text-bg font-poppins w-full antialiased`}
       >
         <ThemeProvider>
           <ReactQueryProvicer>
@@ -39,7 +39,9 @@ export default function RootLayout({
               ) : (
                 ""
               )}
-              <div className={pathName !== "/sign-in" ? "mt-[220px] px-4" : ""}>{children}</div>
+              <div className={pathName !== "/sign-in" ? "mt-[220px] px-4 max-h-[50dvh]" : ""}>
+                {children}
+              </div>
               <CustomSnackbar />
             </ReduxProvider>
           </ReactQueryProvicer>

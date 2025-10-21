@@ -8,11 +8,19 @@ interface PopupInterface {
 interface PopupState {
   managerComplaintDetails: PopupInterface;
   supporterComplaintDetails: PopupInterface;
+  managerRolesForm: PopupInterface;
+  roleUsers: PopupInterface;
+  managerUsersForm: PopupInterface;
+  managerUserDetails: PopupInterface;
 }
 
 const initialState: PopupState = {
   managerComplaintDetails: { isOpen: false },
   supporterComplaintDetails: { isOpen: false },
+  managerRolesForm: { isOpen: false },
+  roleUsers: { isOpen: false },
+  managerUsersForm: { isOpen: false },
+  managerUserDetails: { isOpen: false },
 };
 
 const popupSlice = createSlice({

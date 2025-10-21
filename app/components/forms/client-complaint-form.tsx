@@ -5,7 +5,7 @@ import { COLLECTOR_REQ, getCookie } from "@/app/utils/requests/refresh-token-req
 import { useAppDispatch } from "@/app/utils/store/hooks";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
 
