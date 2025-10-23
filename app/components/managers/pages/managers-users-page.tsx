@@ -5,7 +5,7 @@ import { fillAnalytics } from "@/app/utils/store/slices/analytics-slice";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { getManagersComplaints, getManagersUsers } from "@/app/utils/requests/managers-requests";
-import { selectPopup } from "@/app/utils/store/slices/popup-slice";
+import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import AllUsersTable from "../../tables/all-users-table";
 import { Button } from "@mui/material";
 import BlackLayer from "../../common/black-layer/black-layer";
@@ -47,6 +47,18 @@ export default function ManagersUsersPage() {
       {openForm && (
         <BlackLayer onClick={() => setOpenForm(false)}>
           <UserForm closeForm={() => setOpenForm(false)} />
+        </BlackLayer>
+      )}
+      {managerUserDetails.isOpen && (
+        <BlackLayer onClick={() => dispatch(closePopup({ popup: "managerUserDetails" }))}>
+          <UserForm
+            closeForm={() => dispatch(closePopup({ popup: "managerUserDetails" }))}
+            initialData={{
+              user_id: managerUserDetails?.data?.id,
+              user_name: managerUserDetails?.data?.user_name,
+              role_id: managerUserDetails?.data?.role?.id,
+            }}
+          />
         </BlackLayer>
       )}
       {/* {managerUserDetails.isOpen && (

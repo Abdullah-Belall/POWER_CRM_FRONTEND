@@ -9,8 +9,8 @@ import { playwriteUsModern } from "./utils/fonts/play-right-usa-modern";
 import Header from "./components/common/header/header";
 import Analytics from "./components/common/analytics/analytics";
 import { usePathname } from "next/navigation";
-
 import FetchProfile from "./components/common/profile/fetch-profile";
+import SideBar from "./components/common/side-bar/side-bar";
 
 export default function RootLayout({
   children,
@@ -28,20 +28,18 @@ export default function RootLayout({
           <ReactQueryProvicer>
             <ReduxProvider>
               <FetchProfile />
+              <div className={pathName !== "/sign-in" ? "mt-[220px] px-4 max-h-[50dvh]" : ""}>
+                {children}
+              </div>
               {pathName !== "/sign-in" ? (
                 <>
-                  {" "}
-                  <section className="fixed left-[50%] translate-x-[-50%] top-[70px] container px-4 z-10">
-                    <Analytics />
-                  </section>
+                  <Analytics />
                   <Header />
+                  <SideBar />{" "}
                 </>
               ) : (
                 ""
               )}
-              <div className={pathName !== "/sign-in" ? "mt-[220px] px-4 max-h-[50dvh]" : ""}>
-                {children}
-              </div>
               <CustomSnackbar />
             </ReduxProvider>
           </ReactQueryProvicer>

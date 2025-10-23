@@ -9,11 +9,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-export default function UserForm({ closeForm }: { closeForm: () => void }) {
+export default function UserForm({
+  closeForm,
+  initialData,
+}: {
+  closeForm: () => void;
+  initialData?: { user_name: string; role_id: string; user_id: string };
+}) {
   const [data, setData] = useState({
-    user_name: "",
+    user_name: initialData?.user_name || "",
     password: "",
-    role_id: "",
+    role_id: initialData?.role_id || "",
   });
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const dispatch = useAppDispatch();
@@ -87,7 +93,9 @@ export default function UserForm({ closeForm }: { closeForm: () => void }) {
   };
   return (
     <div className="w-md bg-[#eee] p-3 rounded-md flex flex-col items-center">
-      <h1 className="text-lg font-semibold text-black mx-auto w-fit">Create New User</h1>
+      <h1 className="text-lg font-semibold text-black mx-auto w-fit">
+        {initialData ? "Update" : "Create New"} User
+      </h1>
       <div className="w-full my-[15px] flex flex-col gap-2.5">
         <TextField
           className={`w-full`}
@@ -96,13 +104,15 @@ export default function UserForm({ closeForm }: { closeForm: () => void }) {
           variant={"filled"}
           label={"User Name"}
         />
-        <TextField
-          className={`w-full`}
-          value={data.password}
-          onChange={(e) => handleData("password", e.target.value)}
-          variant={"filled"}
-          label={"Password"}
-        />
+        {!initialData && (
+          <TextField
+            className={`w-full`}
+            value={data.password}
+            onChange={(e) => handleData("password", e.target.value)}
+            variant={"filled"}
+            label={"Password"}
+          />
+        )}
         <FormControl fullWidth className="!text-darkgreen">
           <InputLabel id="select-label2">Role</InputLabel>
           <Select
@@ -111,6 +121,13 @@ export default function UserForm({ closeForm }: { closeForm: () => void }) {
             onChange={(e) => handleData("role_id", e.target.value)}
             className="!text-darkgreen !font-[600]"
             label="Role"
+            MenuProps={{
+              sx: { zIndex: 5001 },
+              PaperProps: {
+                sx: { zIndex: 5001 },
+              },
+              container: typeof window !== "undefined" ? document.body : undefined,
+            }}
             sx={{
               color: "darkgreen",
               fontWeight: 600,
@@ -127,7 +144,7 @@ export default function UserForm({ closeForm }: { closeForm: () => void }) {
           </Select>
         </FormControl>
       </div>
-      <Button onClick={handleConfirm} variant="contained">
+      <Button disabled={!!initialData} onClick={handleConfirm} variant="contained">
         Confirm
       </Button>
     </div>

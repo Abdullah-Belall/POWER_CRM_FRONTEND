@@ -66,6 +66,7 @@ const columns: TableColumnInterface[] = [
   {
     id: "start_solve_at",
     label: "Working At",
+    minWidth: 150,
   },
 
   {

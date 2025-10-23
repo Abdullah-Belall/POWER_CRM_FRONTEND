@@ -12,6 +12,8 @@ import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@m
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
+import UsersTable from "../tables/users-table";
+import { UserInterface } from "@/app/utils/interfaces/user-interface";
 
 export default function SupporterComplaintForm({
   closeForm,
@@ -44,6 +46,8 @@ export default function SupporterComplaintForm({
     created_at: "",
     updated_at: "",
   });
+  const [supporters, setSupporters] = useState<UserInterface[]>([]);
+  const [openRefer, setOpenRefer] = useState(false);
   const currUser = useAppSelector((state) => selectCurrentUser(state));
   const dispatch = useAppDispatch();
   const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
@@ -84,7 +88,7 @@ export default function SupporterComplaintForm({
     onSuccess: () => {
       closeForm();
       handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Complaint finished successfully");
-      queryClient.invalidateQueries({ queryKey: ["manager-complaints"] });
+      queryClient.invalidateQueries({ queryKey: ["supporter-complaints"] });
     },
     onError: (error: any) => {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data?.message);
@@ -99,6 +103,14 @@ export default function SupporterComplaintForm({
       { status: data.status }
     );
   };
+  useQuery({
+    queryKey: ["get-supporters-for-refer-supporer"],
+    queryFn: async () => {
+      const result = await getSupporters();
+      setSupporters(result.data.users);
+      return result.data;
+    },
+  });
   return (
     <div className="w-4xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
       <h1 className="text-lg font-semibold text-black mx-auto w-fit">Complaint Details</h1>
@@ -190,9 +202,9 @@ export default function SupporterComplaintForm({
             ""
           )}
         </div>
-        <div className="w-fit text-[red] font-[600] mx-auto">
+        {/* <div className="w-fit text-[red] font-[600] mx-auto">
           coming tomorrow Complaint supporter history
-        </div>
+        </div> */}
         <div className="w-full flex flex-col items-center gap-3">
           <h1 className="text-black font-[600]">Actions</h1>
 
@@ -212,6 +224,13 @@ export default function SupporterComplaintForm({
                     color: "darkgreen",
                   },
                 }}
+                MenuProps={{
+                  sx: { zIndex: 5001 },
+                  PaperProps: {
+                    sx: { zIndex: 5001 },
+                  },
+                  container: typeof window !== "undefined" ? document.body : undefined,
+                }}
               >
                 <MenuItem
                   className="hover:bg-xlightgreen! !font-[600]"
@@ -227,11 +246,51 @@ export default function SupporterComplaintForm({
                 </MenuItem>
               </Select>
             </FormControl>
-            <Button onClick={handleFinish} variant="contained">
-              Finish Compliant
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleFinish} variant="contained">
+                Finish Compliant
+              </Button>
+              <Button onClick={() => setOpenRefer(true)} variant="contained">
+                Refer to supporter
+              </Button>
+            </div>
           </div>
         </div>
+        {openRefer && (
+          <div className="flex flex-col gap-2 w-full">
+            {/* <div className="flex items-center gap-2 justify-center">
+                <TextField
+                  className={`w-full`}
+                  value={assignData.note}
+                  onChange={(e) => setAssignData({ ...assignData, note: e.target.value })}
+                  variant={"filled"}
+                  label={"Note for supporter"}
+                />
+                <TextField
+                  className={`w-full`}
+                  value={assignData.max_time_to_solve}
+                  onChange={(e) =>
+                    setAssignData({
+                      ...assignData,
+                      max_time_to_solve: isNaN(Number(e.target.value))
+                        ? assignData.max_time_to_solve
+                        : e.target.value,
+                    })
+                  }
+                  variant={"filled"}
+                  label={"Complaint max time"}
+                />
+              </div> */}
+            <h1 className="font-[600] text-md text-black">Supporters</h1>
+            <UsersTable
+              data={supporters.filter((e) => e.id !== currUser?.id)}
+              supporterForm={{
+                closeForm,
+                complaint_id: id,
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

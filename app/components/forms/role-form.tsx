@@ -8,11 +8,22 @@ import { useState } from "react";
 
 const label = { inputProps: { "aria-label": "Checkbox demo" } };
 
-export default function RoleForm({ closeForm }: { closeForm: () => void }) {
+export default function RoleForm({
+  closeForm,
+  initialData,
+}: {
+  closeForm: () => void;
+  initialData?: {
+    id: string;
+    name: string;
+    code: string;
+    roles: string[];
+  };
+}) {
   const [data, setData] = useState({
-    name: "",
-    code: "",
-    roles: [] as string[],
+    name: initialData?.name || "",
+    code: initialData?.code || "",
+    roles: initialData?.roles || ([] as string[]),
   });
   const dispatch = useAppDispatch();
   const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
@@ -58,7 +69,7 @@ export default function RoleForm({ closeForm }: { closeForm: () => void }) {
     return true;
   };
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
+  const addNew = useMutation({
     mutationFn: async (payload: typeof data) => {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles`, payload, {
         headers: {
@@ -76,18 +87,52 @@ export default function RoleForm({ closeForm }: { closeForm: () => void }) {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
     },
   });
+  const updateCurr = useMutation({
+    mutationFn: async (payload: typeof data) => {
+      const res = await axios.patch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${initialData?.id}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie("access_token")}`,
+          },
+        }
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      closeForm();
+      handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Role attributes successfully updated");
+      queryClient.invalidateQueries({ queryKey: ["manager-roles"] });
+    },
+    onError: (error: any) => {
+      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
+    },
+  });
   const handleConfirm = async () => {
     if (!validation()) return;
-    if (isPending) return;
-    await COLLECTOR_REQ(mutateAsync, {
-      ...data,
-      roles: JSON.stringify(data.roles),
-      code: Number(data.code),
-    });
+    if (initialData) {
+      if (updateCurr.isPending) return;
+    } else {
+      if (addNew.isPending) return;
+    }
+    if (initialData) {
+      await COLLECTOR_REQ(updateCurr.mutateAsync, {
+        roles: JSON.stringify(data.roles),
+      });
+    } else {
+      await COLLECTOR_REQ(addNew.mutateAsync, {
+        ...data,
+        roles: JSON.stringify(data.roles),
+        code: Number(data.code),
+      });
+    }
   };
   return (
     <div className="w-xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
-      <h1 className="text-lg font-semibold text-black mx-auto w-fit">Create New Role</h1>
+      <h1 className="text-lg font-semibold text-black mx-auto w-fit mb-1">
+        {initialData ? "Update" : "Create New"} Role
+      </h1>
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
           <TextField
@@ -96,6 +141,7 @@ export default function RoleForm({ closeForm }: { closeForm: () => void }) {
             onChange={(e) => handleData("name", e.target.value)}
             variant={"filled"}
             label={"Name"}
+            disabled={!!initialData}
           />
           <TextField
             className={`w-full`}
@@ -103,6 +149,7 @@ export default function RoleForm({ closeForm }: { closeForm: () => void }) {
             onChange={(e) => handleData("code", e.target.value)}
             variant={"filled"}
             label={"Code"}
+            disabled={!!initialData}
           />
         </div>
         <div className="flex flex-col gap-1 my-3">
@@ -124,6 +171,7 @@ export default function RoleForm({ closeForm }: { closeForm: () => void }) {
           </ul>
         </div>
       </div>
+
       <Button onClick={handleConfirm} variant="contained">
         Confirm
       </Button>
@@ -144,6 +192,8 @@ const roles = [
   "read-role",
   "update-role",
 
+  "sub-complaint-f-client",
+  "self-solve-complaint",
   "create-complaint",
   "read-complaint",
   "assign-complaint",

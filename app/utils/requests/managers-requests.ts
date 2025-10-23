@@ -26,7 +26,7 @@ export const getComplaint = (complaint_id: string) =>
 export const getSupporters = () =>
   COLLECTOR_REQ(async () => {
     //! Make it Dynamic
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users?role=supporter`, {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users?role=Supporter`, {
       headers: {
         Authorization: `Bearer ${getCookie("access_token")}`,
       },

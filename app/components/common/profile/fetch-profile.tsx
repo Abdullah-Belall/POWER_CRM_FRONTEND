@@ -10,9 +10,13 @@ export default function FetchProfile() {
     queryKey: ["profile"],
     queryFn: async () => {
       const result = await getProfile();
-      console.log(result.data);
-      dispatch(setCurrentUser(result.data));
-      return result.data;
+      dispatch(
+        setCurrentUser({
+          ...result?.data,
+          role: { ...result?.data?.role, roles: JSON.parse(result?.data?.role?.roles) },
+        })
+      );
+      return result?.data;
     },
   });
   return <></>;

@@ -14,7 +14,7 @@ export default function BlackLayer({
           onClick();
         }
       }}
-      className="backdrop-blur-[1px] flex justify-center items-center w-full h-full fixed left-0 top-0 bg-[#00000066] z-30"
+      className="backdrop-blur-[1px] flex justify-center items-center w-full h-full fixed left-0 top-0 bg-[#00000066] z-[4000]"
     >
       {children}
     </div>

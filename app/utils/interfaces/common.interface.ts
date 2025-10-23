@@ -7,7 +7,7 @@ export interface RoleInterface {
   users_count?: number;
   name: string;
   code: number;
-  roles: string;
+  roles: string[];
   created_at: Date;
   updated_at: Date;
 }

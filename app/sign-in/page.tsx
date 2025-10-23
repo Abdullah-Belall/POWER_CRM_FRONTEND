@@ -48,13 +48,27 @@ export default function SignIn() {
       return res.data;
     },
     onSuccess: (res) => {
-      console.log(res);
-      // dispatch(setCurrentUser(res.data))
-      // router.push("/");
+      dispatch(
+        setCurrentUser({
+          ...res?.user,
+          role: { ...res?.user?.role, roles: JSON.parse(res?.user?.role?.roles) },
+        })
+      );
+      const roles: string[] = res?.user?.role?.roles;
+      if (roles.includes("create-tenant")) {
+        router.push("/managers");
+      } else if (roles.includes("assignable")) {
+        router.push("/supporters");
+      } else if (roles.includes("create-complaint") && !roles.includes("update-complaint")) {
+        router.push("/clients/complaints");
+      } else {
+        router.push("/");
+      }
       setCookie("access_token", res.access_token);
       handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Signed In successfully");
     },
     onError: (error: any) => {
+      console.log(error);
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
     },
   });

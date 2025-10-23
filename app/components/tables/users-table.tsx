@@ -13,6 +13,7 @@ import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-b
 export default function UsersTable({
   data,
   managerForm,
+  supporterForm,
 }: {
   data: UserInterface[];
   managerForm?: {
@@ -20,6 +21,10 @@ export default function UsersTable({
     complaint_id: string;
     note?: string;
     max_time_to_solve?: number;
+  };
+  supporterForm?: {
+    closeForm: () => void;
+    complaint_id: string;
   };
 }) {
   const formateData = data?.map((e) => ({
@@ -37,7 +42,7 @@ export default function UsersTable({
     );
   };
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
+  const managerReq = useMutation({
     mutationFn: async (data: any) => {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints-assigner/assign`,
@@ -58,28 +63,74 @@ export default function UsersTable({
         SnakeBarTypeEnum.SUCCESS,
         "Successfully assigned complaint to the supporter"
       );
-      queryClient.invalidateQueries({ queryKey: ["manager-assign-supporter"] });
+      queryClient.invalidateQueries({
+        queryKey: ["manager-complaints"],
+      });
     },
     onError: (error: any) => {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data?.message);
     },
   });
+  const supporterReq = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints-solving/${supporterForm?.complaint_id}/refer-to/${data?.supporter_id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie("access_token")}`,
+          },
+        }
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      if (supporterForm?.closeForm) {
+        supporterForm?.closeForm();
+      }
+      handleOpenSnakeBar(
+        SnakeBarTypeEnum.SUCCESS,
+        "Successfully refered complaint to another supporter"
+      );
+      queryClient.invalidateQueries({
+        queryKey: ["supporter-complaints"],
+      });
+    },
+    onError: (error: any) => {
+      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data?.message);
+      if (supporterForm?.closeForm) {
+        supporterForm?.closeForm();
+      }
+      handleOpenSnakeBar(
+        SnakeBarTypeEnum.SUCCESS,
+        "Successfully refered complaint to another supporter"
+      );
+      queryClient.invalidateQueries({
+        queryKey: ["supporter-complaints"],
+      });
+    },
+  });
+  const onRowClick = (row: any) => {
+    if (managerForm) {
+      !managerReq.isPending
+        ? managerReq.mutateAsync({
+            supporter_id: row.id,
+            complaint_id: managerForm?.complaint_id,
+            note: managerForm?.note,
+            max_time_to_solve: managerForm?.max_time_to_solve,
+          })
+        : "";
+    } else if (supporterForm) {
+      !supporterReq.isPending
+        ? supporterReq.mutateAsync({
+            supporter_id: row.id,
+          })
+        : "";
+    }
+  };
   return (
     <div>
-      <MainTable
-        columns={columns}
-        rows={formateData}
-        onRowClick={(row) => {
-          !isPending
-            ? mutateAsync({
-                supporter_id: row.id,
-                complaint_id: managerForm?.complaint_id,
-                note: managerForm?.note,
-                max_time_to_solve: managerForm?.max_time_to_solve,
-              })
-            : "";
-        }}
-      />
+      <MainTable columns={columns} rows={formateData} onRowClick={(row) => onRowClick(row)} />
     </div>
   );
 }

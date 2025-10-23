@@ -10,3 +10,15 @@ export const getSupportersComplaints = () =>
     });
     return { done: true, data: res.data };
   });
+export const getSupporterNotifi = () =>
+  COLLECTOR_REQ(async () => {
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints/supporter-notifi`,
+      {
+        headers: {
+          Authorization: `Bearer ${getCookie("access_token")}`,
+        },
+      }
+    );
+    return { done: true, data: res.data };
+  });

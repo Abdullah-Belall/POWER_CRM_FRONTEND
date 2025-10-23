@@ -154,6 +154,13 @@ export default function ClientComplaintForm({ closeForm }: { closeForm: () => vo
               value={data.screen_viewer}
               label="Age"
               onChange={(e) => handleData("screen_viewer", e.target.value)}
+              MenuProps={{
+                sx: { zIndex: 5001 },
+                PaperProps: {
+                  sx: { zIndex: 5001 },
+                },
+                container: typeof window !== "undefined" ? document.body : undefined,
+              }}
             >
               <MenuItem className="hover:bg-xlightgreen!" value={ScreenViewerEnum.ANYDESK}>
                 <ScreenViewer viewer={ScreenViewerEnum.ANYDESK} />

@@ -1,17 +1,26 @@
 "use client";
 import { useAppSelector } from "@/app/utils/store/hooks";
 import { analyticsState } from "@/app/utils/store/slices/analytics-slice";
+import { selectPopup } from "@/app/utils/store/slices/popup-slice";
 import { FaArrowTrendDown, FaArrowTrendUp } from "react-icons/fa6";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 export default function Analytics() {
   const { analytics, chart } = useAppSelector(analyticsState);
+  const sideBar = useAppSelector((state) => selectPopup(state, "sideBar"));
+
   return (
-    <section className="w-full flex rounded-xl bg-darkgreen overflow-hidden max-h-[134px]">
+    <section
+      className={`${
+        sideBar.isOpen
+          ? "w-[calc(100%-280px)] left-[calc(50%+120px)]"
+          : "w-[calc(100%-100px)] left-[50%]"
+      } flex duration-200 rounded-xl bg-darkgreen overflow-hidden max-h-[134px] fixed translate-x-[-50%] top-[70px] z-30`}
+    >
       {analytics.map((e, i) => (
         <div
           key={i}
-          className="flex flex-col gap-2.5 w-full cursor-pointer border-lightgreen duration-300 hover:border-b-5 p-4 hover:bg-xdarkgreen"
+          className="flex flex-col gap-2.5 w-full cursor-pointer border-lightgreen duration-300 hover:border-b-5 py-4 px-6 hover:bg-xdarkgreen"
         >
           <h1 className="text-xs font-[300] opacity-[.7]">{e.title}</h1>
           <p className="text-3xl font-[600]">{e.value}</p>

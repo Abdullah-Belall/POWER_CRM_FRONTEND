@@ -5,10 +5,8 @@ import { fillAnalytics } from "@/app/utils/store/slices/analytics-slice";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import ManagerComplaintsTable from "../../tables/manager-complaints-table";
-import { getManagersComplaints } from "@/app/utils/requests/managers-requests";
 import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import BlackLayer from "../../common/black-layer/black-layer";
-import ManagerComplaintForm from "../../forms/manager-complaint-form";
 import { getSupportersComplaints } from "@/app/utils/requests/supporter-requests";
 import SupporterComplaintForm from "../../forms/supporter-complaint-form";
 

@@ -19,7 +19,7 @@ export default function ManagerRolesTable({ data }: { data: RoleInterface[] }) {
         columns={columns}
         rows={formateData}
         onRowClick={(data) => {
-          dispatch(openPopup({ popup: "roleUsers", data }));
+          dispatch(openPopup({ popup: "managerRolesForm", data }));
         }}
       />
     </div>

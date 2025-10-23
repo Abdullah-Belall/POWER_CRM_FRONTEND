@@ -105,7 +105,7 @@ export default function ManagerComplaintForm({
     queryFn: async () => {
       const result = await getSupporters();
       console.log(result);
-      setSupporters(result.data.supporters);
+      setSupporters(result.data.users);
       return result.data;
     },
   });
@@ -235,9 +235,9 @@ export default function ManagerComplaintForm({
             ""
           )}
         </div>
-        <div className="w-fit text-[red] font-[600] mx-auto">
+        {/* <div className="w-fit text-[red] font-[600] mx-auto">
           coming tomorrow Complaint supporter history
-        </div>
+        </div> */}
         <div className="w-full flex flex-col items-center gap-3">
           <h1 className="text-black font-[600]">Actions</h1>
 
@@ -258,6 +258,13 @@ export default function ManagerComplaintForm({
                       "& .MuiSvgIcon-root": {
                         color: "darkgreen",
                       },
+                    }}
+                    MenuProps={{
+                      sx: { zIndex: 5001 },
+                      PaperProps: {
+                        sx: { zIndex: 5001 },
+                      },
+                      container: typeof window !== "undefined" ? document.body : undefined,
                     }}
                   >
                     <MenuItem

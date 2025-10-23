@@ -12,6 +12,8 @@ interface PopupState {
   roleUsers: PopupInterface;
   managerUsersForm: PopupInterface;
   managerUserDetails: PopupInterface;
+  sideBar: PopupInterface;
+  supporterReferResponse: PopupInterface;
 }
 
 const initialState: PopupState = {
@@ -21,6 +23,8 @@ const initialState: PopupState = {
   roleUsers: { isOpen: false },
   managerUsersForm: { isOpen: false },
   managerUserDetails: { isOpen: false },
+  sideBar: { isOpen: false },
+  supporterReferResponse: { isOpen: false },
 };
 
 const popupSlice = createSlice({

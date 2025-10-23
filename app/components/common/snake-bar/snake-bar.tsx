@@ -54,6 +54,7 @@ export default function CustomSnackbar() {
           justifyContent: "start",
         },
       }}
+      className={"!z-[9999]"}
     />
   );
 }

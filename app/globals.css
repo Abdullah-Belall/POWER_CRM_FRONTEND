@@ -12,6 +12,7 @@
   --xdark-green: #1e5049;
   --dark-green: #24574a;
   --light-green: #4d995b;
+  --hover-green: #66a371;
   --xlight-green: #addec3;
   /* --light-green: #4d995b; */
 }
@@ -27,6 +28,7 @@
   --color-lightgreen: var(--light-green);
   --color-xlightgreen: var(--xlight-green);
   --color-xdarkgreen: var(--xdark-green);
+  --color-hovergreen: var(--hover-green);
 }
 
 /* @media (prefers-color-scheme: dark) {

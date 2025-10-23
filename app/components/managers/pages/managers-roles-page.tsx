@@ -5,7 +5,7 @@ import { fillAnalytics } from "@/app/utils/store/slices/analytics-slice";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { getManagersRoles } from "@/app/utils/requests/managers-requests";
-import { selectPopup } from "@/app/utils/store/slices/popup-slice";
+import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import ManagerRolesTable from "../../tables/roles-table";
 import BlackLayer from "../../common/black-layer/black-layer";
 import RoleForm from "../../forms/role-form";
@@ -14,7 +14,7 @@ import { Button } from "@mui/material";
 export default function ManagersRolesPage() {
   const [openForm, setOpenForm] = useState(false);
   const dispatch = useAppDispatch();
-  const managerComplaintDetails = useAppSelector((state) => selectPopup(state, "managerRolesForm"));
+  const managerRolesForm = useAppSelector((state) => selectPopup(state, "managerRolesForm"));
   useEffect(() => {
     dispatch(fillAnalytics({ analytics, chart }));
   }, []);
@@ -49,14 +49,19 @@ export default function ManagersRolesPage() {
           <RoleForm closeForm={() => setOpenForm(false)} />
         </BlackLayer>
       )}
-      {/* {managerComplaintDetails.isOpen && (
-        <BlackLayer onClick={() => dispatch(closePopup({ popup: "managerComplaintDetails" }))}>
-          <ManagerComplaintForm
-            closeForm={() => dispatch(closePopup({ popup: "managerComplaintDetails" }))}
-            id={managerComplaintDetails.data?.id}
+      {managerRolesForm.isOpen && (
+        <BlackLayer onClick={() => dispatch(closePopup({ popup: "managerRolesForm" }))}>
+          <RoleForm
+            closeForm={() => dispatch(closePopup({ popup: "managerRolesForm" }))}
+            initialData={{
+              id: managerRolesForm?.data?.id,
+              name: managerRolesForm?.data?.name,
+              code: managerRolesForm?.data?.code,
+              roles: JSON.parse(managerRolesForm?.data?.roles),
+            }}
           />
         </BlackLayer>
-      )} */}
+      )}
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserInterface } from "../../interfaces/user-interface";
+import type { RootState } from "../store";
 
 interface UserState {
   currentUser: UserInterface | null;
@@ -39,10 +40,9 @@ export const { setLoading, setCurrentUser, updateCurrentUser, clearUserData } = 
 
 export default userSlice.reducer;
 
-// Selectors typed against local shape to avoid importing RootState
-const selectCurrentUser = (state: { user: UserState }) => state.user.currentUser;
-const selectCurrentUserName = (state: { user: UserState }) => state.user.currentUser?.user_name;
-const selectCurrentUserId = (state: { user: UserState }) => state.user.currentUser?.id;
-const selectUserIsLoading = (state: { user: UserState }) => state.user.isLoading;
+const selectCurrentUser = (state: RootState) => state.user.currentUser;
+const selectCurrentUserName = (state: RootState) => state.user.currentUser?.user_name;
+const selectCurrentUserRoles = (state: RootState) => state.user.currentUser?.role?.roles;
+const selectUserIsLoading = (state: RootState) => state.user.isLoading;
 
-export { selectCurrentUser, selectUserIsLoading, selectCurrentUserName, selectCurrentUserId };
+export { selectCurrentUser, selectUserIsLoading, selectCurrentUserName, selectCurrentUserRoles };
