@@ -1,6 +1,6 @@
 "use client";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
-import { createCustomTheme } from "./theme";
+import { CreateCustomTheme } from "./theme";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -8,7 +8,7 @@ interface ThemeProviderProps {
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   // Create theme only once to avoid hydration mismatches
-  const theme = createCustomTheme();
+  const theme = CreateCustomTheme();
 
   return <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>;
 }

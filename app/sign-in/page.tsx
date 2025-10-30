@@ -1,16 +1,17 @@
 "use client";
-import { Button, TextField } from "@mui/material";
+import { Button, ButtonGroup, TextField } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useAppDispatch } from "../utils/store/hooks";
+import { useAppDispatch, useAppSelector } from "../utils/store/hooks";
 import { openSnakeBar, SnakeBarTypeEnum } from "../utils/store/slices/snake-bar-slice";
 import { useRouter } from "next/navigation";
 import { setCurrentUser } from "../utils/store/slices/user-slice";
 import { setCookie } from "../utils/requests/refresh-token-req";
+import { changeLang, getPageTrans } from "../utils/store/slices/languages-slice";
 
 export default function SignIn() {
-  const lang = "ar";
+  const trans = useAppSelector(getPageTrans("signInPage"));
   const router = useRouter();
   const [data, setData] = useState({
     user_name: "",
@@ -26,6 +27,19 @@ export default function SignIn() {
     handleData("lang", window.localStorage.getItem("lang") || "en");
     handleData("tenant_domain", window.location.hostname);
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        handleSignIn();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [data]);
 
   const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
     dispatch(
@@ -51,19 +65,9 @@ export default function SignIn() {
       dispatch(
         setCurrentUser({
           ...res?.user,
-          role: { ...res?.user?.role, roles: JSON.parse(res?.user?.role?.roles) },
         })
       );
-      const roles: string[] = res?.user?.role?.roles;
-      if (roles.includes("create-tenant")) {
-        router.push("/managers");
-      } else if (roles.includes("assignable")) {
-        router.push("/supporters");
-      } else if (roles.includes("create-complaint") && !roles.includes("update-complaint")) {
-        router.push("/clients/complaints");
-      } else {
-        router.push("/");
-      }
+      router.push("/");
       setCookie("access_token", res.access_token);
       handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Signed In successfully");
     },
@@ -89,66 +93,59 @@ export default function SignIn() {
       tenant_domain: data.tenant_domain === "localhost" ? "localhost.com" : data.tenant_domain,
     });
   };
-
+  const handlechangeLang = (lang: "ar" | "en") => {
+    dispatch(
+      changeLang({
+        lang,
+      })
+    );
+  };
   return (
     <div className="w-full flex h-dvh">
-      <section className="w-[35%] flex flex-col justify-center px-[20px] translate-y-[-60px]">
+      <section className="w-[30%] bg-white h-full flex flex-col justify-center px-[20px]">
         <a href="https://www.power-soft.co" target="_blank">
           <img src="/LOGUP.gif" alt="" className="w-[110px] mx-auto pulse mt-[60px]" />
         </a>
-        <img src="/LOGDown.gif" alt="" className="w-[300px] mx-auto mb-[60px]" />
+        <img src="/LOGDown.gif" alt="" className="w-[300px] mx-auto mb-[40px]" />
         <div className=" flex flex-col justify-center items-start gap-4">
-          <h1 className="text-xl font-semibold mb-[10px]">Welcome Back, Sign In</h1>
+          <div className="w-full flex justify-center my-4">
+            <ButtonGroup variant="text" className="!flex" aria-label="Basic button group">
+              <Button onClick={() => handlechangeLang("ar")}>Ar</Button>
+              <Button onClick={() => handlechangeLang("en")}>En</Button>
+            </ButtonGroup>
+          </div>
           <TextField
             className={`w-full`}
+            style={{
+              fontFamily: "cairo !important",
+            }}
             value={data.user_name}
             onChange={(e) => handleData("user_name", e.target.value)}
             variant={"filled"}
-            label={"User Name"}
+            label={trans.lables.userName}
           />
           <TextField
             className={`w-full`}
+            style={{
+              fontFamily: "cairo !important",
+              fontStyle: "cairo !important",
+            }}
             value={data.password}
             onChange={(e) => handleData("password", e.target.value)}
             variant={"filled"}
-            label={"Password"}
+            label={trans.lables.password}
           />
-          <Button onClick={handleSignIn} variant="contained">
-            {isPending ? "Loading..." : "Sign In"}
+          <Button disabled={isPending} onClick={handleSignIn} variant="contained">
+            {trans.btn}
           </Button>
         </div>
       </section>
-      <section className="w-[65%] bg-darkgreen flex flex-col gap-4 justify-center items-center">
-        <img className={`w-[95%]`} src={"login2.svg"} alt={`sign in svg`} />
-        <p className="text-bg text-bg font-semibold font-usmodern">
-          Continuous support... and communication without limits.
-        </p>
+      <section className="w-[70%] h-full bg- flex flex-col items-center">
+        <div className="w-full px-6 flex-1 flex items-center">
+          <img className={`w-full opacity-[1]`} src={"signin4.svg"} alt={`sign in svg`} />
+        </div>
+        <p className={`text-white text-bg font-semibold mb-4`}>{trans.sentence}</p>
       </section>
     </div>
   );
 }
-
-const translation = {
-  welcome: {
-    ar: "مرحبا بعودتك, سجل الدخول",
-    en: "Welcome Back, Sign In",
-  },
-  labels: {
-    user_name: {
-      ar: "اسم المستخدم",
-      en: "User Name",
-    },
-    password: {
-      ar: "كلمة السر",
-      en: "Password",
-    },
-  },
-  confirm: {
-    ar: "تسجيل الدخول",
-    en: "Sign In",
-  },
-  sentence: {
-    ar: "دعمٌ دائم... وتواصلٌ بلا حدود.",
-    en: "Continuous support... and communication without limits.",
-  },
-};

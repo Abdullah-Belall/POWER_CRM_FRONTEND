@@ -1,190 +1,113 @@
 "use client";
-import { Button } from "@mui/material";
 import SideBarList from "./side-bar-list";
 import { usePathname } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { ReactNode, useCallback } from "react";
 import { FaHome } from "react-icons/fa";
 import Link from "next/link";
-import { RiBillLine } from "react-icons/ri";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { closePopup, openPopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
-import { BsList } from "react-icons/bs";
-import { SiGooglecampaignmanager360 } from "react-icons/si";
 import { FaUsers } from "react-icons/fa6";
 import { IoFlag } from "react-icons/io5";
 import { MdHeadsetMic } from "react-icons/md";
 import { selectCurrentUserRoles } from "@/app/utils/store/slices/user-slice";
+import { canAccess } from "@/app/utils/base";
+import { getCurrLang, getPageTrans } from "@/app/utils/store/slices/languages-slice";
+
+interface SubLink {
+  path: string;
+  name: string;
+  roles: string[] | null;
+}
+
+interface NavLink {
+  path: string;
+  name: string;
+  icon?: ReactNode;
+  roles: string[] | null;
+  subLinks?: SubLink[];
+}
 
 export default function SideBar() {
+  const lang = useAppSelector(getCurrLang());
+  const trans = useAppSelector(getPageTrans("sideBar"));
   const sideBar = useAppSelector((state) => selectPopup(state, "sideBar"));
   const roles = useAppSelector((state) => selectCurrentUserRoles(state));
   const dispatch = useAppDispatch();
   const path = usePathname();
   const handleClose = useCallback(() => dispatch(closePopup({ popup: "sideBar" })), []);
-  const dataItems = useMemo(
-    () =>
-      sideBarItems.map((item, index) => (
-        <SideBarList
-          key={index}
-          title={item.title}
-          icon={item.icon}
-          affiliateLinks={item.affiliateLinks}
-          onClose={handleClose}
-        />
-      )),
-    []
+  const sameClass = "opacity-[.7] font-bold group-hover:opacity-100 !text-[22px]";
+  const SideBarLinks: NavLink[] = [
+    {
+      path: "/",
+      name: trans.home,
+      icon: <FaHome className={sameClass} />,
+      roles: null,
+    },
+    {
+      path: "/managers/users",
+      name: trans.users,
+      icon: <FaUsers className={sameClass} />,
+      roles: ["read-user"],
+    },
+    {
+      path: "/managers/roles",
+      name: trans.roles,
+      icon: <IoFlag className={sameClass} />,
+      roles: ["read-role"],
+    },
+    {
+      path: "/managers/complaints",
+      name: trans.complaints,
+      icon: <MdHeadsetMic className={sameClass} />,
+      roles: ["read-complaint"],
+    },
+    {
+      path: "/supporters/complaints",
+      name: trans.complaints,
+      icon: <MdHeadsetMic className={sameClass} />,
+      roles: ["assignable"],
+    },
+    {
+      path: "/clients/complaints",
+      name: trans.complaints,
+      icon: <MdHeadsetMic className={sameClass} />,
+      roles: ["create-complaint"],
+    },
+  ];
+  const allowedLinks = SideBarLinks.filter(
+    (e) => e.roles === null || canAccess(roles as string[], e.roles as string[])
   );
-  const sideBarSelectList = useMemo(() => {
-    return (roles as string[])?.includes("create-tenant")
-      ? ManagerPackage
-      : (roles as string[])?.includes("assignable")
-      ? SupportePackage
-      : (roles as string[])?.includes("create-complaint") &&
-        !(roles as string[])?.includes("update-complaint")
-      ? ClientsPackage
-      : sideBarMainLinks;
-  }, [roles]);
-
-  const mainSideBarLinks = useMemo(
-    () =>
-      sideBarSelectList.map((e, i) => (
-        <Link key={i} className="w-full" onClick={handleClose} href={e.path}>
-          <Button
-            className={`${
-              path === e.path ? "!bg-hovergreen" : ""
-            } group w-full !rounded-md !px-[15px] !flex !gap-[8px] !items-center !justify-start !text-white !text-[16px] !font-[500] !py-1 hover:bg-hovergreen!`}
-            variant="text"
-          >
-            {e.icon}
-            {e.name}
-          </Button>
-        </Link>
-      )),
-    [sideBarMainLinks, path, roles]
+  const displaySideBarLinks = allowedLinks.map((e, i) =>
+    e.subLinks ? (
+      <SideBarList
+        key={i}
+        title={e.name}
+        icon={e.icon}
+        affiliateLinks={e.subLinks}
+        onClose={handleClose}
+      />
+    ) : (
+      <Link key={i} className="w-full" onClick={handleClose} href={e.path}>
+        <button
+          className={`${path === e.path ? "!bg-[#072632] !text-white" : ""} ${
+            lang === "ar" ? "flex-row-reverse" : " "
+          } group duration-200 cursor-pointer w-full !text-nowrap !rounded-md !px-[15px] !flex !gap-[8px] !text-white !items-center !justify-start !text-[16px] !font-[500] !py-1 hover:bg-[#072632]! hover:text-white!`}
+        >
+          <p className="!m-0">{e.icon}</p>
+          {sideBar.isOpen && e.name}
+        </button>
+      </Link>
+    )
   );
   return (
     <aside
-      className={`${
-        sideBar.isOpen ? "left-0" : "left-[-240px]"
-      } duration-200 rounded-r-xl flex flex-col gap-2 px-[5px] py-[20px] fixed bottom-[10px] w-[240px] h-[calc(100dvh-159px)] bg-lightgreen z-[3000]`}
+      onMouseEnter={() => dispatch(openPopup({ popup: "sideBar", data: {} }))}
+      onMouseLeave={() => dispatch(closePopup({ popup: "sideBar" }))}
+      className={`${sideBar.isOpen ? "w-[240px]" : "w-[62px]"} duration-200 ${
+        lang === "ar" ? "rounded-l-xl right-0" : "rounded-r-xl left-0"
+      } flex flex-col shadow-lg gap-2 px-[5px] py-[20px] fixed bottom-[10px] h-[80dvh] bg-lightgreen z-[3000]`}
     >
-      <button
-        onClick={() =>
-          dispatch(
-            sideBar.isOpen
-              ? closePopup({ popup: "sideBar" })
-              : openPopup({ popup: "sideBar", data: {} })
-          )
-        }
-        className={`${
-          sideBar.isOpen ? "left-[240px]" : "left-0"
-        } duration-200 cursor-pointer bg-lightgreen fixed top-[35%] text-xl p-1 rounded-r-md z-[200] bg-[red]`}
-      >
-        <BsList />
-      </button>
-      {mainSideBarLinks}
-      {dataItems}
+      <div className="relative z-10 flex flex-col gap-2">{displaySideBarLinks}</div>
     </aside>
   );
 }
-
-const sameClass = "opacity-50 group-hover:opacity-100";
-
-const sideBarMainLinks = [
-  {
-    path: "/",
-    name: "Home",
-    icon: <FaHome className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-];
-const sideBarItems = [
-  {
-    title: "Test",
-    icon: <RiBillLine className={sameClass} />,
-    affiliateLinks: [
-      {
-        title: "Sub link 1",
-        link: "/",
-      },
-      {
-        title: "Sub link 2",
-        link: "/",
-      },
-      {
-        title: "Sub link 3",
-        link: "/",
-      },
-      {
-        title: "Sub link 4",
-        link: "/",
-      },
-    ],
-  },
-];
-const ManagerPackage = [
-  {
-    path: "/",
-    name: "Home",
-    icon: <FaHome className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-  {
-    path: "/managers",
-    name: "Overview",
-    icon: (
-      <SiGooglecampaignmanager360 className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />
-    ),
-  },
-  {
-    path: "/managers/users",
-    name: "Users",
-    icon: <FaUsers className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-  {
-    path: "/managers/roles",
-    name: "Roles",
-    icon: <IoFlag className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-  {
-    path: "/managers/complaints",
-    name: "Complaints",
-    icon: <MdHeadsetMic className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-];
-const SupportePackage = [
-  {
-    path: "/",
-    name: "Home",
-    icon: <FaHome className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-  {
-    path: "/supporters",
-    name: "Overview",
-    icon: (
-      <SiGooglecampaignmanager360 className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />
-    ),
-  },
-  {
-    path: "/supporters/complaints",
-    name: "Complaints",
-    icon: <MdHeadsetMic className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-];
-const ClientsPackage = [
-  {
-    path: "/",
-    name: "Home",
-    icon: <FaHome className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-  {
-    path: "/clients",
-    name: "Overview",
-    icon: (
-      <SiGooglecampaignmanager360 className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />
-    ),
-  },
-  {
-    path: "/clients/complaints",
-    name: "Complaints",
-    icon: <MdHeadsetMic className="opacity-[.7] font-bold group-hover:opacity-100 text-[17px]" />,
-  },
-];

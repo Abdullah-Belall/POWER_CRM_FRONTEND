@@ -1,6 +1,6 @@
 import { SiAnydesk, SiTeamviewer } from "react-icons/si";
 import { ScreenViewerEnum } from "./enums/screen-viewer.enum";
-import { ComplaintStatusEnum } from "./enums/complaint-status-enum";
+import { ComplaintPriorityStatusEnum, ComplaintStatusEnum } from "./enums/complaint-status-enum";
 
 export const BASE_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000") + "api";
 
@@ -80,7 +80,7 @@ export const ComplaintStatusViewer = ({ status }: { status: ComplaintStatusEnum 
       );
     case ComplaintStatusEnum.CANCELLED:
       return (
-        <button className="p-1 text-xs text-nowrap bg-red-900 text-red-300 rounded-md border-2 border-red-300">
+        <button className="p-1 text-xs text-nowrap bg-indigo-900 text-indigo-300 rounded-md border-2 border-indigo-300">
           {status}
         </button>
       );
@@ -104,7 +104,33 @@ export const ComplaintStatusViewer = ({ status }: { status: ComplaintStatusEnum 
       );
     case ComplaintStatusEnum.SUSPENDED:
       return (
-        <button className="p-1 text-xs text-nowrap bg-indigo-900 text-indigo-300 rounded-md border-2 border-indigo-300">
+        <button className="p-1 text-xs text-nowrap bg-red-900 text-red-300 rounded-md border-2 border-red-300">
+          {status}
+        </button>
+      );
+  }
+};
+export const ComplaintPriorityStatusViewer = ({
+  status,
+}: {
+  status: ComplaintPriorityStatusEnum;
+}) => {
+  switch (status) {
+    case ComplaintPriorityStatusEnum.HIGH:
+      return (
+        <button className="p-1 text-xs text-nowrap bg-purple-900 text-purple-300 rounded-md border-2 border-purple-300">
+          {status}
+        </button>
+      );
+    case ComplaintPriorityStatusEnum.NORMAL:
+      return (
+        <button className="p-1 text-xs text-nowrap bg-emerald-900 text-emerald-300 rounded-md border-2 border-emerald-300">
+          {status}
+        </button>
+      );
+    case ComplaintPriorityStatusEnum.LOW:
+      return (
+        <button className="p-1 text-xs text-nowrap bg-slate-900 text-slate-300 rounded-md border-2 border-slate-300">
           {status}
         </button>
       );
@@ -114,3 +140,11 @@ export const ComplaintStatusViewer = ({ status }: { status: ComplaintStatusEnum 
 export const checkNull = (value: any, message: string) => {
   return !value || value?.trim() === "" ? message : value;
 };
+
+export function canAccess(userRoles: string[], allowedRoles: string[]): boolean {
+  return allowedRoles.some((role) => userRoles?.includes(role));
+}
+
+export function getDir(lang: "ar" | "en") {
+  return lang === "ar" ? "rtl" : "ltr";
+}

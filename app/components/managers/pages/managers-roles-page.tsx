@@ -1,52 +1,75 @@
 "use client";
-import ActiveComplaints from "@/app/components/clients/complaints/active-complaints";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
-import { fillAnalytics } from "@/app/utils/store/slices/analytics-slice";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { getManagersRoles } from "@/app/utils/requests/managers-requests";
 import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import ManagerRolesTable from "../../tables/roles-table";
 import BlackLayer from "../../common/black-layer/black-layer";
 import RoleForm from "../../forms/role-form";
 import { Button } from "@mui/material";
+import { RoleInterface } from "@/app/utils/interfaces/common.interface";
+import { ADD_ROLE, GET_ROLES, UPDATE_ROLE } from "@/app/utils/requests-hub/managers-reqs";
+import { useRouter } from "next/navigation";
+import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
+import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { CLIENT_COLLECTOR_REQ } from "@/app/utils/requests-hub/common-reqs";
 
 export default function ManagersRolesPage() {
+  const router = useRouter();
+  const trans = useAppSelector(getPageTrans("managersRolesPage"));
   const [openForm, setOpenForm] = useState(false);
+  const [data, setData] = useState<RoleInterface[]>([]);
   const dispatch = useAppDispatch();
+  const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
+    dispatch(
+      openSnakeBar({
+        type,
+        message,
+      })
+    );
+  };
   const managerRolesForm = useAppSelector((state) => selectPopup(state, "managerRolesForm"));
+  const fetchData = async () => {
+    const res = await CLIENT_COLLECTOR_REQ(GET_ROLES);
+    if (res.done) {
+      setData(res.data.roles);
+    } else {
+      router.push("/sign-in");
+    }
+  };
+
   useEffect(() => {
-    dispatch(fillAnalytics({ analytics, chart }));
+    fetchData();
   }, []);
-  const { data } = useQuery({
-    queryKey: ["manager-roles"],
-    queryFn: async () => {
-      const result = await getManagersRoles();
-      return result.data;
-    },
-  });
   return (
     <>
       <div className="flex gap-[20px] h-fit">
-        <div className="w-[80%] flex flex-col gap-[10px]">
+        <div className="w-full flex flex-col gap-[10px]">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="font-bold text-xl text-black">All Roles</h1>
-              <p className="font-[300] text-[#888] text-xs">Dashboard Drill-down</p>
+              <h1 className="font-bold text-xl text-white">{trans.title}</h1>
             </div>
             <Button onClick={() => setOpenForm(true)} variant="contained">
-              New Role
+              {trans.btn}
             </Button>
           </div>
-          <ManagerRolesTable data={data?.roles} />
-        </div>
-        <div className="w-[20%]">
-          <ActiveComplaints />
+          <ManagerRolesTable data={data} />
         </div>
       </div>
       {openForm && (
         <BlackLayer onClick={() => setOpenForm(false)}>
-          <RoleForm closeForm={() => setOpenForm(false)} />
+          <RoleForm
+            closeForm={() => setOpenForm(false)}
+            onConfirm={async (data: any) => {
+              const res = await CLIENT_COLLECTOR_REQ(ADD_ROLE, data);
+              if (res.done) {
+                setOpenForm(false);
+                handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Role added successfully");
+                fetchData();
+              } else {
+                handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, res.message);
+              }
+            }}
+          />
         </BlackLayer>
       )}
       {managerRolesForm.isOpen && (
@@ -57,7 +80,20 @@ export default function ManagersRolesPage() {
               id: managerRolesForm?.data?.id,
               name: managerRolesForm?.data?.name,
               code: managerRolesForm?.data?.code,
-              roles: JSON.parse(managerRolesForm?.data?.roles),
+              roles: managerRolesForm?.data?.roles,
+            }}
+            onConfirm={async (data: any) => {
+              const res = await CLIENT_COLLECTOR_REQ(UPDATE_ROLE, data);
+              if (res.done) {
+                dispatch(closePopup({ popup: "managerRolesForm" }));
+                handleOpenSnakeBar(
+                  SnakeBarTypeEnum.SUCCESS,
+                  "Role attributes successfully updated"
+                );
+                fetchData();
+              } else {
+                handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, res.message);
+              }
             }}
           />
         </BlackLayer>
@@ -65,43 +101,3 @@ export default function ManagersRolesPage() {
     </>
   );
 }
-const chart = [
-  { month: "Jan", col1: 2.5, col2: 3.0, col3: 2.8 },
-  { month: "Feb", col1: 1.8, col2: 2.4, col3: 2.1 },
-  { month: "Mar", col1: 2.9, col2: 3.2, col3: 2.7 },
-  { month: "Apr", col1: 1.2, col2: 1.9, col3: 1.5 },
-  { month: "May", col1: 3.1, col2: 2.7, col3: 3.3 },
-  { month: "Jun", col1: 2.0, col2: 2.3, col3: 2.6 },
-  // { month: "Jul", col1: 2.8, col2: 3.1, col3: 2.9 },
-  // { month: "Aug", col1: 1.9, col2: 2.2, col3: 2.0 },
-  // { month: "Sep", col1: 2.3, col2: 2.8, col3: 2.5 },
-  // { month: "Oct", col1: 2.7, col2: 3.0, col3: 3.2 },
-  // { month: "Nov", col1: 1.5, col2: 1.9, col3: 2.1 },
-  // { month: "Dec", col1: 2.2, col2: 2.6, col3: 2.9 },
-];
-const analytics = [
-  {
-    title: "Total Clients",
-    value: "83",
-    lastMonth: 10,
-    onclick: () => "",
-  },
-  {
-    title: "New Clients",
-    value: "12",
-    lastMonth: 15,
-    onclick: () => "",
-  },
-  {
-    title: "Complaints",
-    value: "32",
-    lastMonth: -10,
-    onclick: () => "",
-  },
-  {
-    title: "Opened Complaints",
-    value: "3",
-    lastMonth: -10,
-    onclick: () => "",
-  },
-];

@@ -1,28 +1,46 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 *::-webkit-scrollbar {
   width: 6px !important;
-  height: 6px !important;
+  height: 10px !important;
   background-color: var(--xlight-green);
 }
 *::-webkit-scrollbar-thumb {
   background-color: var(--light-green);
 }
+* {
+  font-family: cairo !important;
+}
 :root {
-  --background: #ffffff;
   --xdark-green: #1e5049;
   --dark-green: #24574a;
-  --light-green: #4d995b;
-  --hover-green: #66a371;
+  --hover-green: #ffffff65;
   --xlight-green: #addec3;
-  /* --light-green: #4d995b; */
+  --light-green: #378600;
 }
+/* :root {
+  --background: #ffffff;
+  --xdark-green: #082129;
+  --dark-green: #102801;
+  --light-green: #bcf20a;
+  --hover-green: #68cb02;
+  --xlight-green: #55a801;
+  /* --light-green: #4d995b;
+} */
+/* :root {
+  --background: #ffffff;
+  --xdark-green: #212529;
+  --dark-green: #343a40;
+  --light-green: #f8f9fa;
+  --hover-green: #dee2e6c4;
+  --xlight-green: #f8f9fa;
+  --light-green: #49505798;
+} */
 
 @theme inline {
   --color-background: var(--background);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-poppins: var(--font-poppins);
-  --font-usmodern: var(--font-playwrite-us-modern);
   --color-darkgreen: var(--dark-green);
   --color-bg: var(--background);
   --color-lightgreen: var(--light-green);
@@ -37,12 +55,6 @@
     --foreground: #ededed;
   }
 } */
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
-}
 
 @keyframes custompulse {
   0%,

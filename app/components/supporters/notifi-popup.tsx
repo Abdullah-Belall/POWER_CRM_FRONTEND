@@ -1,26 +1,22 @@
 "use client";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
-import { selectCurrentUser } from "@/app/utils/store/slices/user-slice";
 import ManagerComplaintsTable from "../tables/manager-complaints-table";
 import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import BlackLayer from "../common/black-layer/black-layer";
 import RespondForm from "../forms/respond-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { getCookie } from "@/app/utils/requests/refresh-token-req";
 import { SupporterReferAcceptEnum } from "@/app/utils/enums/supporter-accept-status.enum";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { CLIENT_COLLECTOR_REQ } from "@/app/utils/requests-hub/common-reqs";
+import { REFER_RESPONSE } from "@/app/utils/requests-hub/supporters-reqs";
+import { getCurrLang } from "@/app/utils/store/slices/languages-slice";
+import { getDir } from "@/app/utils/base";
 
-export default function SupporterNotificationPopup({
-  closeForm,
-  data,
-}: {
-  closeForm: () => void;
-  data: any;
-}) {
+export default function SupporterNotificationPopup({ data }: { data: any }) {
+  const notifiRefetch = useAppSelector((state) => selectPopup(state, "notifiRefetch"));
+  const pathName = usePathname();
   const router = useRouter();
-  const currUser = useAppSelector((state) => selectCurrentUser(state));
   const supporterReferResponse = useAppSelector((state) =>
     selectPopup(state, "supporterReferResponse")
   );
@@ -33,41 +29,36 @@ export default function SupporterNotificationPopup({
       })
     );
   };
-  const queryClient = useQueryClient();
-  const referResponse = useMutation({
-    mutationFn: async (dataBody: any) => {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints-solving/${dataBody?.solvingId}/refer-response`,
-        {
-          accept_status: dataBody.accept_status,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie("access_token")}`,
-          },
-        }
-      );
-      return res.data;
-    },
-    onSuccess: () => {
-      closeForm();
+  const [loading, setLoading] = useState(false);
+  const handleRefer = async (accept_status: SupporterReferAcceptEnum) => {
+    if (loading) return;
+    setLoading(true);
+    const res = await CLIENT_COLLECTOR_REQ(REFER_RESPONSE, {
+      solvingId: supporterReferResponse.data?.solving[0]?.id,
+      accept_status,
+    });
+    if (res.done) {
       dispatch(closePopup({ popup: "supporterReferResponse" }));
       handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Response successfully sended");
-      router.push("/supporters/complaints");
-      queryClient.invalidateQueries({ queryKey: ["supporter-complaints"] });
-      queryClient.invalidateQueries({ queryKey: ["supporter-notifi"] });
-    },
-    onError: (error: any) => {
-      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data?.message);
-    },
-  });
-
+      if (pathName === "/supporter/complaints") {
+        window.location.reload();
+      } else {
+        router.push("/supporters/complaints");
+      }
+      await notifiRefetch.data.refetch();
+      dispatch(closePopup({ popup: "notifiRefetch" }));
+    } else {
+      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, res?.message);
+    }
+    setLoading(false);
+  };
+  const lang = useAppSelector(getCurrLang());
   return (
     <>
-      <div className="w-4xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
+      <div dir={getDir(lang)} className="w-4xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
         <h1 className="text-lg font-semibold text-black mx-auto w-fit">Notifications</h1>
         <div className="w-full max-h-[calc(100dvh-200px)] overflow-x-hidden overflow-y-scroll">
-          <ManagerComplaintsTable data={data?.complaints} popup={"supporterReferResponse"} />
+          <ManagerComplaintsTable data={data} popup={"supporterReferResponse"} />
         </div>
       </div>
       {supporterReferResponse.isOpen && (
@@ -76,19 +67,8 @@ export default function SupporterNotificationPopup({
             title={"Select An Option"}
             acceptSlug={`Accept`}
             refuseSlug={`Refuse`}
-            onAccept={async () => {
-              referResponse.mutateAsync({
-                solvingId: supporterReferResponse.data?.solving[0]?.id,
-                accept_status: SupporterReferAcceptEnum.ACCEPTED,
-              });
-            }}
-            onRefuse={async () => {
-              console.log(supporterReferResponse.data?.solving[0]?.id);
-              referResponse.mutateAsync({
-                solvingId: supporterReferResponse.data?.solving[0]?.id,
-                accept_status: SupporterReferAcceptEnum.DECLINED,
-              });
-            }}
+            onAccept={async () => await handleRefer(SupporterReferAcceptEnum.ACCEPTED)}
+            onRefuse={async () => await handleRefer(SupporterReferAcceptEnum.DECLINED)}
           />
         </BlackLayer>
       )}

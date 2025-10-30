@@ -1,16 +1,14 @@
-import { COLLECTOR_REQ, getCookie } from "@/app/utils/requests/refresh-token-req";
-import { useAppDispatch } from "@/app/utils/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
+import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
 import { Button, Checkbox, TextField } from "@mui/material";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 
 const label = { inputProps: { "aria-label": "Checkbox demo" } };
 
 export default function RoleForm({
-  closeForm,
   initialData,
+  onConfirm,
 }: {
   closeForm: () => void;
   initialData?: {
@@ -19,7 +17,9 @@ export default function RoleForm({
     code: string;
     roles: string[];
   };
+  onConfirm: (data: any) => Promise<void>;
 }) {
+  const trans = useAppSelector(getPageTrans("managersRolesPage")).popup;
   const [data, setData] = useState({
     name: initialData?.name || "",
     code: initialData?.code || "",
@@ -68,70 +68,33 @@ export default function RoleForm({
     }
     return true;
   };
-  const queryClient = useQueryClient();
-  const addNew = useMutation({
-    mutationFn: async (payload: typeof data) => {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles`, payload, {
-        headers: {
-          Authorization: `Bearer ${getCookie("access_token")}`,
-        },
-      });
-      return res.data;
-    },
-    onSuccess: () => {
-      closeForm();
-      handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Role added successfully");
-      queryClient.invalidateQueries({ queryKey: ["manager-roles"] });
-    },
-    onError: (error: any) => {
-      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
-    },
-  });
-  const updateCurr = useMutation({
-    mutationFn: async (payload: typeof data) => {
-      const res = await axios.patch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${initialData?.id}`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie("access_token")}`,
-          },
-        }
-      );
-      return res.data;
-    },
-    onSuccess: () => {
-      closeForm();
-      handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Role attributes successfully updated");
-      queryClient.invalidateQueries({ queryKey: ["manager-roles"] });
-    },
-    onError: (error: any) => {
-      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
-    },
-  });
+  const [loading, setLoading] = useState(false);
   const handleConfirm = async () => {
+    if (loading) return;
     if (!validation()) return;
-    if (initialData) {
-      if (updateCurr.isPending) return;
-    } else {
-      if (addNew.isPending) return;
-    }
-    if (initialData) {
-      await COLLECTOR_REQ(updateCurr.mutateAsync, {
-        roles: JSON.stringify(data.roles),
-      });
-    } else {
-      await COLLECTOR_REQ(addNew.mutateAsync, {
-        ...data,
-        roles: JSON.stringify(data.roles),
-        code: Number(data.code),
-      });
-    }
+    setLoading(true);
+    onConfirm(
+      initialData
+        ? {
+            data: {
+              roles: JSON.stringify(data.roles),
+            },
+            id: initialData?.id,
+          }
+        : {
+            data: {
+              ...data,
+              roles: JSON.stringify(data.roles),
+              code: Number(data.code),
+            },
+          }
+    );
+    setLoading(false);
   };
   return (
     <div className="w-xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
-      <h1 className="text-lg font-semibold text-black mx-auto w-fit mb-1">
-        {initialData ? "Update" : "Create New"} Role
+      <h1 className="text-lg font-semibold text-black mx-auto w-fit pb-2">
+        {initialData ? trans.title.update : trans.title.create}
       </h1>
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
@@ -140,7 +103,7 @@ export default function RoleForm({
             value={data.name}
             onChange={(e) => handleData("name", e.target.value)}
             variant={"filled"}
-            label={"Name"}
+            label={trans.inputs.name}
             disabled={!!initialData}
           />
           <TextField
@@ -148,12 +111,12 @@ export default function RoleForm({
             value={data.code}
             onChange={(e) => handleData("code", e.target.value)}
             variant={"filled"}
-            label={"Code"}
+            label={trans.inputs.code}
             disabled={!!initialData}
           />
         </div>
         <div className="flex flex-col gap-1 my-3">
-          <h1 className="text-black font-bold text-lg mx-auto">All Roles</h1>
+          <h1 className="text-black font-bold text-lg mx-auto">{trans.inputs.allRoles}</h1>
           <ul className="flex flex-wrap w-full max-h-[calc(100dvh-400px)] overflow-y-scroll">
             {roles.map((e, i) => (
               <li

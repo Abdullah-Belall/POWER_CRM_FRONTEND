@@ -1,44 +1,53 @@
 "use client";
-import ActiveComplaints from "@/app/components/clients/complaints/active-complaints";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
-import { fillAnalytics } from "@/app/utils/store/slices/analytics-slice";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ManagerComplaintsTable from "../../tables/manager-complaints-table";
 import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import BlackLayer from "../../common/black-layer/black-layer";
-import { getSupportersComplaints } from "@/app/utils/requests/supporter-requests";
 import SupporterComplaintForm from "../../forms/supporter-complaint-form";
+import { ManagerComplaintInterface } from "@/app/utils/interfaces/manager.interface";
+import { CLIENT_COLLECTOR_REQ } from "@/app/utils/requests-hub/common-reqs";
+import { SUPPORTERS_COMPLAINTS } from "@/app/utils/requests-hub/supporters-reqs";
+import { useRouter } from "next/navigation";
+import { Button } from "@mui/material";
+import CreateComplaintForClient from "../../forms/create-complaint-for-client";
+import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
 
 export default function SupportersComplaintsPage() {
+  const router = useRouter();
+  const [createComplaint, setCreateNewPopup] = useState(false);
+  const [data, setData] = useState<ManagerComplaintInterface[]>([]);
   const dispatch = useAppDispatch();
   const supporterComplaintDetails = useAppSelector((state) =>
     selectPopup(state, "supporterComplaintDetails")
   );
+  const fetchData = async () => {
+    const res = await CLIENT_COLLECTOR_REQ(SUPPORTERS_COMPLAINTS);
+    console.log(res);
+    if (res.done) {
+      setData(res?.data?.complaints);
+    } else {
+      router.push("/sign-in");
+    }
+  };
+
   useEffect(() => {
-    dispatch(fillAnalytics({ analytics, chart }));
+    fetchData();
   }, []);
-  const { data } = useQuery({
-    queryKey: ["supporter-complaints"],
-    queryFn: async () => {
-      const result = await getSupportersComplaints();
-      return result.data;
-    },
-  });
+  const trans = useAppSelector(getPageTrans("managersComplaintsPage"));
   return (
     <>
       <div className="flex gap-[20px]">
-        <div className="w-[80%] flex flex-col gap-[10px]">
+        <div className="w-full flex flex-col gap-[10px]">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="font-bold text-xl text-black">All Complaints</h1>
-              <p className="font-[300] text-[#888] text-xs">Dashboard Drill-down</p>
+              <h1 className="font-bold text-xl text-white pb-2">{trans.title}</h1>
             </div>
+            <Button onClick={() => setCreateNewPopup(true)} variant="contained">
+              {trans.btn}
+            </Button>
           </div>
-          <ManagerComplaintsTable data={data?.complaints} popup={"supporterComplaintDetails"} />
-        </div>
-        <div className="w-[20%]">
-          <ActiveComplaints />
+          <ManagerComplaintsTable data={data} popup={"supporterComplaintDetails"} />
         </div>
       </div>
       {supporterComplaintDetails.isOpen && (
@@ -46,49 +55,34 @@ export default function SupportersComplaintsPage() {
           <SupporterComplaintForm
             closeForm={() => dispatch(closePopup({ popup: "supporterComplaintDetails" }))}
             id={supporterComplaintDetails.data?.id}
+            refetchComplaints={fetchData}
+          />
+        </BlackLayer>
+      )}
+      {createComplaint && (
+        <BlackLayer
+          onClick={() => {
+            setCreateNewPopup(false);
+            dispatch(
+              closePopup({
+                popup: "selectClientForCreateComplaint",
+              })
+            );
+          }}
+        >
+          <CreateComplaintForClient
+            closeForm={() => {
+              setCreateNewPopup(false);
+              dispatch(
+                closePopup({
+                  popup: "selectClientForCreateComplaint",
+                })
+              );
+            }}
+            refetch={fetchData}
           />
         </BlackLayer>
       )}
     </>
   );
 }
-const chart = [
-  { month: "Jan", col1: 2.5, col2: 3.0, col3: 2.8 },
-  { month: "Feb", col1: 1.8, col2: 2.4, col3: 2.1 },
-  { month: "Mar", col1: 2.9, col2: 3.2, col3: 2.7 },
-  { month: "Apr", col1: 1.2, col2: 1.9, col3: 1.5 },
-  { month: "May", col1: 3.1, col2: 2.7, col3: 3.3 },
-  { month: "Jun", col1: 2.0, col2: 2.3, col3: 2.6 },
-  // { month: "Jul", col1: 2.8, col2: 3.1, col3: 2.9 },
-  // { month: "Aug", col1: 1.9, col2: 2.2, col3: 2.0 },
-  // { month: "Sep", col1: 2.3, col2: 2.8, col3: 2.5 },
-  // { month: "Oct", col1: 2.7, col2: 3.0, col3: 3.2 },
-  // { month: "Nov", col1: 1.5, col2: 1.9, col3: 2.1 },
-  // { month: "Dec", col1: 2.2, col2: 2.6, col3: 2.9 },
-];
-const analytics = [
-  {
-    title: "Total Clients",
-    value: "83",
-    lastMonth: 10,
-    onclick: () => "",
-  },
-  {
-    title: "New Clients",
-    value: "12",
-    lastMonth: 15,
-    onclick: () => "",
-  },
-  {
-    title: "Complaints",
-    value: "32",
-    lastMonth: -10,
-    onclick: () => "",
-  },
-  {
-    title: "Opened Complaints",
-    value: "3",
-    lastMonth: -10,
-    onclick: () => "",
-  },
-];

@@ -13,15 +13,17 @@ export default function MainTable({
   rows,
   columns,
   onRowClick,
+  hieght,
 }: {
   columns: any[];
   rows: any[];
   onRowClick?: (data: any) => void;
+  hieght?: string;
 }) {
   const safeRows = rows ?? [];
   const safeColumns = columns ?? [];
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -35,29 +37,29 @@ export default function MainTable({
     return path.split(".").reduce((acc, key) => acc?.[key], obj);
   };
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <TableContainer sx={{ maxHeight: 360 }}>
+    <Paper className="!bg-transparent !shadow-2xl" sx={{ width: "100%", overflow: "hidden" }}>
+      <TableContainer className={`${hieght ? hieght : "!h-[58dvh]"}`}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
               {safeColumns.map((column, i) => (
                 <TableCell
-                  className="!bg-xlightgreen !text-nowrap !text-center"
+                  className="!bg-lightgreen !text-nowrap !text-white !font-bold !text-center "
                   key={i}
                   align={column.align}
-                  style={{ minWidth: column.minWidth }}
+                  style={{ minWidth: column.minWidth, fontFamily: "cairo" }}
                 >
                   {column.label}
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
-          <TableBody>
+          <TableBody className="!bg-transparent">
             {safeRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => {
               return (
                 <TableRow
                   hover
-                  className="hover:bg-xlightgreen!"
+                  className="hover:bg-hovergreen! !bg-transparent"
                   onClick={() => (onRowClick ? onRowClick(row) : "")}
                   role="checkbox"
                   tabIndex={-1}
@@ -71,7 +73,11 @@ export default function MainTable({
                       ? column.format(value)
                       : value;
                     return (
-                      <TableCell className="!text-center" key={i} align={column.align}>
+                      <TableCell
+                        className="!text-center !text-white !bg-[#115b77]"
+                        key={i}
+                        align={column.align}
+                      >
                         {content}
                       </TableCell>
                     );
@@ -83,7 +89,8 @@ export default function MainTable({
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
+        className={`!text-white !bg-[#115b77]`}
+        rowsPerPageOptions={[25, 50, 100]}
         component="div"
         count={safeRows.length}
         rowsPerPage={rowsPerPage}

@@ -41,8 +41,15 @@ export const { setLoading, setCurrentUser, updateCurrentUser, clearUserData } = 
 export default userSlice.reducer;
 
 const selectCurrentUser = (state: RootState) => state.user.currentUser;
+const selectCurrentUserId = (state: RootState) => state.user.currentUser?.id;
 const selectCurrentUserName = (state: RootState) => state.user.currentUser?.user_name;
 const selectCurrentUserRoles = (state: RootState) => state.user.currentUser?.role?.roles;
 const selectUserIsLoading = (state: RootState) => state.user.isLoading;
 
-export { selectCurrentUser, selectUserIsLoading, selectCurrentUserName, selectCurrentUserRoles };
+export {
+  selectCurrentUserId,
+  selectCurrentUser,
+  selectUserIsLoading,
+  selectCurrentUserName,
+  selectCurrentUserRoles,
+};

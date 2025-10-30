@@ -1,12 +1,14 @@
 import { createTheme } from "@mui/material/styles";
+import { useAppSelector } from "../store/hooks";
+import { getCurrLang } from "../store/slices/languages-slice";
 
-export const createCustomTheme = () => {
+export const CreateCustomTheme = () => {
   // Use consistent default values for both server and client to avoid hydration mismatches
   const defaultValues: { [key: string]: string } = {
     "--background": "#ffffff",
-    "--dark-green": "#24574a",
+    "--dark-green": "#378600",
     "--light-green": "#ffffff",
-    "--font-poppins": "poppins",
+    "--font-cairo": "cairo",
   };
 
   const getCSSVariable = (variableName: string) => {
@@ -16,10 +18,11 @@ export const createCustomTheme = () => {
 
   const darkgreen = getCSSVariable("--dark-green");
   const lightgreen = getCSSVariable("--light-green");
-  const fontpoppins = getCSSVariable("--font-poppins");
+  const fontcairo = getCSSVariable("--font-cairo");
+  const currLang = useAppSelector(getCurrLang());
 
   return createTheme({
-    direction: "ltr",
+    direction: currLang === "ar" ? "rtl" : "ltr",
     palette: {
       primary: {
         main: darkgreen,
@@ -42,9 +45,9 @@ export const createCustomTheme = () => {
       },
     },
     typography: {
-      fontFamily: fontpoppins + " Arial, sans-serif",
+      fontFamily: fontcairo + " Arial, sans-serif",
       allVariants: {
-        fontFamily: fontpoppins + " Arial, sans-serif",
+        fontFamily: fontcairo + " Arial, sans-serif",
       },
     },
     components: {
@@ -52,7 +55,7 @@ export const createCustomTheme = () => {
         styleOverrides: {
           root: {
             "& .MuiFilledInput-root": {
-              fontFamily: fontpoppins,
+              fontFamily: "cairo",
               "&:before": {
                 borderBottomColor: darkgreen,
               },
@@ -65,11 +68,12 @@ export const createCustomTheme = () => {
             },
             "& .MuiInputLabel-root": {
               color: darkgreen,
-              fontFamily: fontpoppins,
+              fontFamily: "cairo",
               caretColor: `${darkgreen} !important`,
-              left: 0,
-              right: "auto",
-              transformOrigin: "top left",
+              right: currLang === "ar" ? 16 : "auto",
+              left: currLang === "ar" ? "auto" : "auto",
+              transformOrigin: `top ${currLang === "ar" ? "right" : "left"}`,
+              marginLeft: currLang === "en" ? 0 : "unset",
               "&.Mui-focused": {
                 color: `${darkgreen} !important`,
               },
@@ -77,20 +81,22 @@ export const createCustomTheme = () => {
             "& .MuiInputLabel-root.Mui-focused": {
               color: `${darkgreen} !important`,
               caretColor: `${darkgreen} !important`,
-              left: 0,
-              right: "auto",
-              transformOrigin: "top left",
+              right: currLang === "ar" ? 16 : "auto",
+              left: currLang === "ar" ? "auto" : "auto",
+              transformOrigin: currLang === "ar" ? "top right" : "top left",
+              marginLeft: currLang === "en" ? 0 : "unset",
             },
             "& .MuiInputLabel-root.MuiFormLabel-filled": {
-              left: 0,
-              right: "auto",
+              right: currLang === "ar" ? 16 : "auto",
+              left: currLang === "ar" ? "auto" : "auto",
               caretColor: `${darkgreen} !important`,
-              transformOrigin: "top left",
+              transformOrigin: currLang === "ar" ? "top right" : "top left",
               color: darkgreen,
+              marginLeft: currLang === "en" ? 0 : "unset",
             },
             "& .MuiFilledInput-input": {
               caretColor: darkgreen,
-              textAlign: "left",
+              textAlign: currLang === "ar" ? "right" : "left",
               fontSize: "14px",
             },
             "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled": {
@@ -99,18 +105,90 @@ export const createCustomTheme = () => {
           },
         },
       },
+      // MuiSelect: {
+      //   styleOverrides: {
+      //     root: ({ theme, ownerState }) => ({
+      //       fontFamily: "Cairo, sans-serif",
+      //       "& .MuiFilledInput-root": {
+      //         backgroundColor: "transparent",
+      //         "&:before": {
+      //           borderBottomColor: "darkgreen",
+      //         },
+      //         "&:hover:not(.Mui-disabled):before": {
+      //           borderBottomColor: "darkgreen",
+      //         },
+      //         "&:after": {
+      //           borderBottomColor: "darkgreen",
+      //         },
+      //       },
+
+      //       "& .MuiSelect-filled.MuiFilledInput-input": {
+      //         textAlign: ownerState.currLang === "ar" ? "right" : "left",
+      //         fontSize: "14px",
+      //         caretColor: "darkgreen",
+      //       },
+
+      //       "& .MuiInputLabel-root": {
+      //         color: "darkgreen",
+      //         fontFamily: "Cairo, sans-serif",
+      //         transformOrigin: ownerState.currLang === "ar" ? "top right" : "top left",
+      //         right: ownerState.currLang === "ar" ? 16 : "auto",
+      //         left: ownerState.currLang === "ar" ? "auto" : 16,
+      //         "&.Mui-focused": {
+      //           color: "darkgreen !important",
+      //         },
+      //       },
+      //       "& .MuiSelect-icon": {
+      //         color: "darkgreen",
+      //         right: ownerState.currLang === "ar" ? "auto" : 8,
+      //         left: ownerState.currLang === "ar" ? 8 : "auto",
+      //       },
+      //     }),
+      //   },
+      // },
       MuiButton: {
         styleOverrides: {
           root: {
-            fontFamily: fontpoppins,
+            fontFamily: fontcairo,
             textTransform: "none",
+          },
+        },
+      },
+      MuiButtonGroup: {
+        styleOverrides: {
+          root: {
+            flexDirection: currLang === "ar" ? "row-reverse" : "row",
+          },
+          grouped: {
+            "&:not(:last-of-type)": {
+              borderTopLeftRadius: "0",
+              borderBottomLeftRadius: "0",
+              borderTopRightRadius: "0",
+              borderBottomRightRadius: "0",
+              borderLeft: "none",
+              borderRight: "none",
+            },
+            "&:not(:first-of-type)": {
+              borderTopLeftRadius: "0",
+              borderBottomLeftRadius: "0",
+              borderTopRightRadius: "0",
+              borderBottomRightRadius: "0",
+            },
+            "&:first-of-type": {
+              borderTopLeftRadius: "4px",
+              borderBottomLeftRadius: "4px",
+            },
+            "&:last-of-type": {
+              borderTopRightRadius: "4px",
+              borderBottomRightRadius: "4px",
+            },
           },
         },
       },
       MuiChip: {
         styleOverrides: {
           root: {
-            fontFamily: fontpoppins,
+            fontFamily: fontcairo,
           },
         },
       },
@@ -136,7 +214,7 @@ export const createCustomTheme = () => {
         styleOverrides: {
           root: {
             "& .MuiTypography-root": {
-              fontFamily: fontpoppins,
+              fontFamily: fontcairo,
             },
           },
         },

@@ -1,66 +1,51 @@
 "use client";
+import { getDir } from "@/app/utils/base";
 import { useAppSelector } from "@/app/utils/store/hooks";
 import { analyticsState } from "@/app/utils/store/slices/analytics-slice";
+import { getCurrLang, getPageTrans } from "@/app/utils/store/slices/languages-slice";
 import { selectPopup } from "@/app/utils/store/slices/popup-slice";
 import { FaArrowTrendDown, FaArrowTrendUp } from "react-icons/fa6";
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 export default function Analytics() {
-  const { analytics, chart } = useAppSelector(analyticsState);
+  const { analytics } = useAppSelector(analyticsState);
   const sideBar = useAppSelector((state) => selectPopup(state, "sideBar"));
+  const currLang = useAppSelector(getCurrLang());
+  const lang = useAppSelector(getCurrLang());
+  const vsLast = useAppSelector(getPageTrans("analytics")).vsLast;
 
   return (
     <section
+      dir={getDir(lang)}
       className={`${
         sideBar.isOpen
-          ? "w-[calc(100%-280px)] left-[calc(50%+120px)]"
-          : "w-[calc(100%-100px)] left-[50%]"
-      } flex duration-200 rounded-xl bg-darkgreen overflow-hidden max-h-[134px] fixed translate-x-[-50%] top-[70px] z-30`}
+          ? currLang === "ar"
+            ? "w-[calc(90%-120px)] left-[calc(50%-120px)]"
+            : "w-[calc(90%-120px)] left-[calc(50%+120px)]"
+          : ""
+      } w-[90%] left-[50%] translate-x-[-50%] flex duration-200 rounded-xl border border-lightgreen shadow-xl max-h-[15dvh] overflow-hidden fixed top-[65px] z-30`}
     >
       {analytics.map((e, i) => (
         <div
           key={i}
-          className="flex flex-col gap-2.5 w-full cursor-pointer border-lightgreen duration-300 hover:border-b-5 py-4 px-6 hover:bg-xdarkgreen"
+          className="flex flex-col gap-1.5 w-full text-white bg-lightgreen cursor-pointer duration-300  py-4 px-6 hover:bg-transparent"
         >
-          <h1 className="text-xs font-[300] opacity-[.7]">{e.title}</h1>
-          <p className="text-3xl font-[600]">{e.value}</p>
+          <h1 className="text-xs font-[300]">{e.title}</h1>
+          <p className="text-2xl font-[600]">{e.value}</p>
           <div className="flex items-center gap-2">
-            <div className="px-2 py-1 bg-[#eeeeee0f] flex items-center text-xs">
-              <span className="text-xlightgreen">
+            <div className="px-2 py-1 bg-[#eeeeee2e] rounded-md flex items-center text-xs">
+              <span className="text-white">
                 {e.lastMonth > 0 ? "+" + e.lastMonth : e.lastMonth}%
               </span>
               {e.lastMonth > 0 ? (
-                <FaArrowTrendUp className="text-[10px] ml-1 opacity-[.5]" />
+                <FaArrowTrendUp className="text-[10px] ml-1 text-white" />
               ) : (
-                <FaArrowTrendDown className="text-[10px] ml-1 opacity-[.5]" />
+                <FaArrowTrendDown className="text-[10px] ml-1 text-white" />
               )}
             </div>
-            <p className="text-[10px] opacity-[.7]">vs last month</p>
+            <p className="text-[10px] opacity-[.7]">{vsLast}</p>
           </div>
         </div>
       ))}
-      <div className="w-full p-4">
-        <h1 className="text-xs font-[300] opacity-[.7]">Analytics</h1>
-        <ResponsiveContainer width="100%" height={110}>
-          <BarChart data={chart} barCategoryGap="30%">
-            <XAxis
-              dataKey="month"
-              stroke="var(--light-green)"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 10, fill: "var(--light-green)" }}
-            />
-            <Tooltip
-              cursor={{ fill: "rgba(0,0,0,0.1)" }}
-              contentStyle={{ backgroundColor: "#1a1a1a", borderRadius: "8px", border: "none" }}
-              labelStyle={{ color: "var(--light-green)", fontWeight: "bold" }}
-            />
-            <Bar dataKey="col1" fill="var(--light-green)" radius={[6, 6, 0, 0]} barSize={6} />
-            <Bar dataKey="col2" fill="var(--light-green)" radius={[6, 6, 0, 0]} barSize={6} />
-            <Bar dataKey="col3" fill="var(--light-green)" radius={[6, 6, 0, 0]} barSize={6} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
     </section>
   );
 }

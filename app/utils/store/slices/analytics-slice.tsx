@@ -1,27 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface AnalyticsInterface {
+export interface AnalyticsInterface {
   title: string;
   value: string;
   lastMonth: number;
-  onclick: (() => void) | (() => Promise<void>);
-}
-
-interface chartInterface {
-  month: string;
-  col1: number;
-  col2: number;
-  col3: number;
 }
 
 interface AnalyticsState {
   analytics: AnalyticsInterface[];
-  chart: chartInterface[];
 }
 
 const initialState: AnalyticsState = {
   analytics: [],
-  chart: [],
 };
 
 const analyticsSlice = createSlice({
@@ -30,7 +20,6 @@ const analyticsSlice = createSlice({
   reducers: {
     fillAnalytics: (state, action: PayloadAction<AnalyticsState>) => {
       state.analytics = action.payload.analytics;
-      state.chart = action.payload.chart;
     },
   },
 });

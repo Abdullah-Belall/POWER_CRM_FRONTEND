@@ -1,30 +1,53 @@
 "use client";
-import { ScreenViewer } from "@/app/utils/base";
+import { getDir, ScreenViewer } from "@/app/utils/base";
 import { ComplaintStatusEnum } from "@/app/utils/enums/complaint-status-enum";
 import { ScreenViewerEnum } from "@/app/utils/enums/screen-viewer.enum";
 import { ManagerComplaintInterface } from "@/app/utils/interfaces/manager.interface";
-import { getComplaint, getSupporters } from "@/app/utils/requests/managers-requests";
-import { COLLECTOR_REQ, getCookie } from "@/app/utils/requests/refresh-token-req";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
 import { selectCurrentUser } from "@/app/utils/store/slices/user-slice";
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UsersTable from "../tables/users-table";
 import { UserInterface } from "@/app/utils/interfaces/user-interface";
+import { CLIENT_COLLECTOR_REQ } from "@/app/utils/requests-hub/common-reqs";
+import {
+  FINISH_SOLVE,
+  GET_SUPPORTER_COMPLAINT,
+  GET_USERS,
+} from "@/app/utils/requests-hub/supporters-reqs";
+import { useRouter } from "next/navigation";
+import { getCurrLang, getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DemoItem } from "@mui/x-date-pickers/internals/demo";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs, { Dayjs } from "dayjs";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { PickerValue } from "@mui/x-date-pickers/internals";
+import BlackLayer from "../common/black-layer/black-layer";
+import { closePopup, openPopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
+import RefereToSupporter from "./refere-supporter-form";
+
+function safeDayjs(val: any): Dayjs | null {
+  if (!val) return null;
+  const d = dayjs(val);
+  return d.isValid() ? d : null;
+}
 
 export default function SupporterComplaintForm({
   closeForm,
   id,
+  refetchComplaints,
 }: {
   closeForm: () => void;
   id: string;
+  refetchComplaints: () => Promise<void>;
 }) {
-  const [data, setData] = useState<ManagerComplaintInterface>({
+  const router = useRouter();
+  const [data, setData] = useState({
     id: "",
-    user: {
+    client: {
       id: "",
       user_name: "",
     },
@@ -39,6 +62,10 @@ export default function SupporterComplaintForm({
     screen_viewer: ScreenViewerEnum.ANYDESK,
     screen_viewer_id: "",
     screen_viewer_password: "",
+    server_viewer: "",
+    server_viewer_id: "",
+    server_viewer_password: "",
+    intervention_date: "",
     start_solve_at: null,
     end_solve_at: null,
     status: ComplaintStatusEnum.PENDING,
@@ -46,10 +73,27 @@ export default function SupporterComplaintForm({
     created_at: "",
     updated_at: "",
   });
-  const [supporters, setSupporters] = useState<UserInterface[]>([]);
-  const [openRefer, setOpenRefer] = useState(false);
-  const currUser = useAppSelector((state) => selectCurrentUser(state));
+
   const dispatch = useAppDispatch();
+  let initialDate: Dayjs | null = safeDayjs(data?.intervention_date);
+  let initialTime: PickerValue | null = initialDate;
+  if (data?.intervention_date) {
+    let dateObj: Dayjs | null = null;
+    if ((data.intervention_date as any) instanceof Date) {
+      dateObj = dayjs(data.intervention_date);
+    } else if (typeof data.intervention_date === "string") {
+      dateObj = dayjs(data.intervention_date);
+    } else {
+      dateObj = data.intervention_date as Dayjs;
+    }
+    initialDate = dateObj;
+    initialTime = dateObj;
+  }
+  const [time, setTime] = useState<PickerValue | null>(initialTime);
+
+  useEffect(() => {
+    setTime(safeDayjs(data.intervention_date));
+  }, [data.intervention_date]);
   const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
     dispatch(
       openSnakeBar({
@@ -61,67 +105,54 @@ export default function SupporterComplaintForm({
   const handleData = (key: keyof typeof data, value: string) => {
     setData((prev) => ({ ...prev, [key]: value }));
   };
-  const queryClient = useQueryClient();
-
-  useQuery({
-    queryKey: ["supporter-client-complaint"],
-    queryFn: async () => {
-      const result = await getComplaint(id);
-      setData(result.data);
-      return result.data;
-    },
-  });
-
-  const finishSolve = useMutation({
-    mutationFn: async (dataBody) => {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/complaints/${data?.id}/finish`,
-        dataBody,
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie("access_token")}`,
-          },
-        }
-      );
-      return res.data;
-    },
-    onSuccess: () => {
+  const fetchData = async () => {
+    const res = await CLIENT_COLLECTOR_REQ(GET_SUPPORTER_COMPLAINT, { complaint_id: id });
+    if (res.done) {
+      setData(res.data);
+    } else {
+      router.push("/sign-in");
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const [loading, setLoading] = useState(false);
+  const handleFinish = async () => {
+    if (
+      data.status !== ComplaintStatusEnum.COMPLETED &&
+      data.status !== ComplaintStatusEnum.CANCELLED
+    ) {
+      handleOpenSnakeBar(SnakeBarTypeEnum.WARNING, "Change complaint status to finish");
+      return;
+    }
+    if (loading) return;
+    setLoading(true);
+    const res = await CLIENT_COLLECTOR_REQ(FINISH_SOLVE, { data: { status: data.status, id } });
+    if (res.done) {
       closeForm();
       handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Complaint finished successfully");
-      queryClient.invalidateQueries({ queryKey: ["supporter-complaints"] });
-    },
-    onError: (error: any) => {
-      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data?.message);
-    },
-  });
-  const handleFinish = async () => {
-    if (finishSolve.isPending) return;
-    await COLLECTOR_REQ(
-      (body) => {
-        return finishSolve.mutateAsync(body);
-      },
-      { status: data.status }
-    );
+      refetchComplaints();
+    } else {
+      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, res?.message);
+    }
+    setLoading(false);
   };
-  useQuery({
-    queryKey: ["get-supporters-for-refer-supporer"],
-    queryFn: async () => {
-      const result = await getSupporters();
-      setSupporters(result.data.users);
-      return result.data;
-    },
-  });
+  const lang = useAppSelector(getCurrLang());
+  const trans = useAppSelector(getPageTrans("clientsComplaintsPage")).popup;
+  const refereToSupporter = useAppSelector((state) => selectPopup(state, "refereToSupporter"));
   return (
-    <div className="w-4xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
-      <h1 className="text-lg font-semibold text-black mx-auto w-fit">Complaint Details</h1>
+    <div dir={getDir(lang)} className="w-4xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
+      <h1 className="text-lg font-semibold text-black mx-auto w-fit pb-2">
+        {trans.inputs.title.split(" ")[lang === "ar" ? 1 : 0]}
+      </h1>
       <div className="w-full max-h-[calc(100dvh-200px)] overflow-x-hidden overflow-y-scroll">
-        <div className="w-full my-[15px] flex flex-col gap-2.5">
+        <div className="w-full px-1 my-[15px] flex flex-col gap-2.5">
           <div className="flex gap-2.5">
             <TextField
               className={`w-full`}
               value={data?.full_name}
               variant={"filled"}
-              label={"Name"}
+              label={trans.inputs.name}
               disabled
             />
             <TextField
@@ -138,7 +169,7 @@ export default function SupporterComplaintForm({
                 )
               }
               variant={"filled"}
-              label={"Phone Number"}
+              label={trans.inputs.phone}
               disabled
             />
           </div>
@@ -147,7 +178,7 @@ export default function SupporterComplaintForm({
             value={data?.title}
             onChange={(e) => handleData("title", e.target.value)}
             variant={"filled"}
-            label={"Title"}
+            label={trans.inputs.title}
             disabled
           />
           <TextField
@@ -157,16 +188,16 @@ export default function SupporterComplaintForm({
             variant={"filled"}
             multiline
             rows={4}
-            label={"Details"}
+            label={trans.inputs.details}
             disabled
           />
           <div className="flex gap-2.5">
             <FormControl fullWidth disabled>
-              <InputLabel id="select-label4">Viewer</InputLabel>
+              <InputLabel id="select-label4">{trans.inputs.screenViewer}</InputLabel>
               <Select
                 labelId="select-label4"
                 value={data?.screen_viewer}
-                label="Age"
+                label={trans.inputs.screenViewer}
                 onChange={(e) => handleData("screen_viewer", e.target.value)}
               >
                 <MenuItem className="hover:bg-xlightgreen!" value={ScreenViewerEnum.ANYDESK}>
@@ -185,7 +216,7 @@ export default function SupporterComplaintForm({
               value={data?.screen_viewer_id}
               onChange={(e) => handleData("screen_viewer_id", e.target.value)}
               variant={"filled"}
-              label={"Viewer Id"}
+              label={trans.inputs.viewerId}
               disabled
             />
           </div>
@@ -195,12 +226,99 @@ export default function SupporterComplaintForm({
               value={data?.screen_viewer_password}
               onChange={(e) => handleData("screen_viewer_password", e.target.value)}
               variant={"filled"}
-              label={"Password"}
+              label={trans.inputs.password}
               disabled
             />
           ) : (
             ""
           )}
+        </div>
+        <div className="flex gap-2.5">
+          <FormControl fullWidth disabled>
+            <InputLabel id="select-label6">{trans?.inputs.serverViewer}</InputLabel>
+            <Select
+              labelId="select-label6"
+              value={data.server_viewer}
+              label={trans?.inputs.serverViewer}
+              onChange={(e) => handleData("server_viewer", e.target.value)}
+              MenuProps={{
+                sx: { zIndex: 999999 },
+                PaperProps: {
+                  sx: { zIndex: 999999 },
+                },
+                container: typeof window !== "undefined" ? document.body : undefined,
+              }}
+            >
+              <MenuItem className="hover:bg-xlightgreen! !font-semibold" value={""}>
+                Clear
+              </MenuItem>
+              <MenuItem className="hover:bg-xlightgreen!" value={ScreenViewerEnum.ANYDESK}>
+                <ScreenViewer viewer={ScreenViewerEnum.ANYDESK} />
+              </MenuItem>
+              <MenuItem className="hover:bg-xlightgreen!" value={ScreenViewerEnum.ULTRAVIEWER}>
+                <ScreenViewer viewer={ScreenViewerEnum.ULTRAVIEWER} />
+              </MenuItem>
+              <MenuItem className="hover:bg-xlightgreen!" value={ScreenViewerEnum.TEAMVIEWR}>
+                <ScreenViewer viewer={ScreenViewerEnum.TEAMVIEWR} />
+              </MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            className={`w-full`}
+            value={data.server_viewer_id}
+            onChange={(e) => handleData("server_viewer_id", e.target.value)}
+            variant={"filled"}
+            label={trans?.inputs.viewerId}
+            disabled
+          />
+        </div>
+        {data.server_viewer &&
+        (data.server_viewer as any) !== "" &&
+        data.server_viewer !== ScreenViewerEnum.ANYDESK ? (
+          <TextField
+            className={`w-full`}
+            value={data.server_viewer_password}
+            onChange={(e) => handleData("server_viewer_password", e.target.value)}
+            variant={"filled"}
+            label={trans?.inputs.password}
+          />
+        ) : (
+          ""
+        )}
+        <div className="w-full flex flex-col items-center gap-2" dir="ltr">
+          <h1 className="text-lightgreen">{trans.inputs.intervention}</h1>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoItem>
+              <div className="w-full !flex !items-center !gap-2.5">
+                <DatePicker
+                  className="w-full"
+                  onChange={(newValue) => handleData("intervention_date", newValue as any)}
+                  value={safeDayjs(data.intervention_date)}
+                  minDate={dayjs()}
+                  slotProps={{
+                    popper: {
+                      sx: { zIndex: 99999999999 },
+                    },
+                    textField: {
+                      disabled: true,
+                    },
+                  }}
+                />
+                <TimePicker
+                  className="w-full"
+                  value={safeDayjs(time)}
+                  slotProps={{
+                    popper: {
+                      sx: { zIndex: 99999999999 },
+                    },
+                    textField: {
+                      disabled: true,
+                    },
+                  }}
+                />
+              </div>
+            </DemoItem>
+          </LocalizationProvider>
         </div>
         {/* <div className="w-fit text-[red] font-[600] mx-auto">
           coming tomorrow Complaint supporter history
@@ -225,9 +343,9 @@ export default function SupporterComplaintForm({
                   },
                 }}
                 MenuProps={{
-                  sx: { zIndex: 5001 },
+                  sx: { zIndex: 999999 },
                   PaperProps: {
-                    sx: { zIndex: 5001 },
+                    sx: { zIndex: 999999 },
                   },
                   container: typeof window !== "undefined" ? document.body : undefined,
                 }}
@@ -250,46 +368,41 @@ export default function SupporterComplaintForm({
               <Button onClick={handleFinish} variant="contained">
                 Finish Compliant
               </Button>
-              <Button onClick={() => setOpenRefer(true)} variant="contained">
+              <Button
+                onClick={() => {
+                  dispatch(
+                    openPopup({
+                      popup: "refereToSupporter",
+                      data: {
+                        complaint_id: id,
+                        closeForm: () => {
+                          closeForm();
+                          dispatch(closePopup({ popup: "refereToSupporter" }));
+                        },
+                        refetchComplaints,
+                      },
+                    })
+                  );
+                }}
+                variant="contained"
+              >
                 Refer to supporter
               </Button>
             </div>
           </div>
         </div>
-        {openRefer && (
-          <div className="flex flex-col gap-2 w-full">
-            {/* <div className="flex items-center gap-2 justify-center">
-                <TextField
-                  className={`w-full`}
-                  value={assignData.note}
-                  onChange={(e) => setAssignData({ ...assignData, note: e.target.value })}
-                  variant={"filled"}
-                  label={"Note for supporter"}
-                />
-                <TextField
-                  className={`w-full`}
-                  value={assignData.max_time_to_solve}
-                  onChange={(e) =>
-                    setAssignData({
-                      ...assignData,
-                      max_time_to_solve: isNaN(Number(e.target.value))
-                        ? assignData.max_time_to_solve
-                        : e.target.value,
-                    })
-                  }
-                  variant={"filled"}
-                  label={"Complaint max time"}
-                />
-              </div> */}
-            <h1 className="font-[600] text-md text-black">Supporters</h1>
-            <UsersTable
-              data={supporters.filter((e) => e.id !== currUser?.id)}
-              supporterForm={{
-                closeForm,
-                complaint_id: id,
-              }}
-            />
-          </div>
+        {refereToSupporter.isOpen && (
+          <BlackLayer
+            onClick={() => {
+              dispatch(
+                closePopup({
+                  popup: "refereToSupporter",
+                })
+              );
+            }}
+          >
+            <RefereToSupporter />
+          </BlackLayer>
         )}
       </div>
     </div>

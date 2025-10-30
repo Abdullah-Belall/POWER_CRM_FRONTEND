@@ -1,23 +1,30 @@
 "use client";
-import { RoleInterface } from "@/app/utils/interfaces/common.interface";
-import { getManagersRolesSelectList } from "@/app/utils/requests/managers-requests";
-import { COLLECTOR_REQ, getCookie } from "@/app/utils/requests/refresh-token-req";
-import { useAppDispatch } from "@/app/utils/store/hooks";
+import { CLIENT_COLLECTOR_REQ } from "@/app/utils/requests-hub/common-reqs";
+import { GET_ROLES_SELECT_LIST } from "@/app/utils/requests-hub/managers-reqs";
+import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
+import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 export default function UserForm({
-  closeForm,
   initialData,
+  onConfirm,
 }: {
   closeForm: () => void;
-  initialData?: { user_name: string; role_id: string; user_id: string };
+  initialData?: {
+    user_name: string;
+    email: string;
+    phone: string;
+    role_id: string;
+    user_id: string;
+  };
+  onConfirm: (data: any) => Promise<void>;
 }) {
   const [data, setData] = useState({
     user_name: initialData?.user_name || "",
+    email: initialData?.email || "",
+    phone: initialData?.phone || "+20",
     password: "",
     role_id: initialData?.role_id || "",
   });
@@ -35,10 +42,22 @@ export default function UserForm({
     setData((prev) => ({ ...prev, [key]: value }));
   };
   const vaildation = () => {
-    const { role_id, user_name, password } = data;
+    const { role_id, user_name, phone, email, password } = data;
 
     if (user_name.trim().length < 4) {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, "User Name must be more than 3 character");
+      return false;
+    }
+    if (email.trim().length > 0) {
+      const re =
+        /^(?!.*\.\.)(?!\.)[a-zA-Z0-9._%+-]+(?<!\.)@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[A-Za-z]{2,}$/;
+      if (!re.test(email)) {
+        handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, "Invaild email address");
+        return false;
+      }
+    }
+    if (phone.trim().length !== 13) {
+      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, "Invaild phone number");
       return false;
     }
     if (password.trim().length < 7) {
@@ -51,58 +70,59 @@ export default function UserForm({
     }
     return true;
   };
-  const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: async (payload: typeof data) => {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/create`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie("access_token")}`,
-          },
-        }
-      );
-      return res.data;
-    },
-    onSuccess: (res) => {
-      closeForm();
-      handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Created new user successfully");
-      queryClient.invalidateQueries({ queryKey: ["manager-all-users"] });
-    },
-    onError: (error: any) => {
-      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
-    },
-  });
-  const roleSelectList = useQuery({
-    queryKey: ["roles-select-list"],
-    queryFn: async () => {
-      const result = await getManagersRolesSelectList();
-      return result.data;
-    },
-  });
-  useEffect(() => {
-    if (roleSelectList.data) {
-      setRoles(roleSelectList.data);
+  const fetchData = async () => {
+    const res = await CLIENT_COLLECTOR_REQ(GET_ROLES_SELECT_LIST);
+    if (res.done) {
+      setRoles(res.data.roles);
     }
-  }, [roleSelectList.data]);
-  const handleConfirm = async () => {
-    if (isPending) return;
-    if (!vaildation()) return;
-    await COLLECTOR_REQ(mutateAsync, data);
   };
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const [loading, setLoading] = useState(false);
+  const handleConfirm = async () => {
+    if (loading) return;
+    if (!vaildation()) return;
+    setLoading(true);
+    await onConfirm({ data });
+    setLoading(false);
+  };
+  const trans = useAppSelector(getPageTrans("managersUsersPage")).popup;
   return (
     <div className="w-md bg-[#eee] p-3 rounded-md flex flex-col items-center">
       <h1 className="text-lg font-semibold text-black mx-auto w-fit">
-        {initialData ? "Update" : "Create New"} User
+        {initialData ? trans.title.update : trans.title.create}
       </h1>
-      <div className="w-full my-[15px] flex flex-col gap-2.5">
+      <div className="w-full px-1 my-[15px] flex flex-col gap-2.5">
         <TextField
           className={`w-full`}
           value={data.user_name}
           onChange={(e) => handleData("user_name", e.target.value)}
           variant={"filled"}
-          label={"User Name"}
+          label={trans.inputs.userName}
+        />
+        <TextField
+          className={`w-full`}
+          value={data.email}
+          onChange={(e) => handleData("email", e.target.value)}
+          variant={"filled"}
+          label={trans.inputs.email}
+        />
+        <TextField
+          className={`w-full`}
+          value={data.phone}
+          onChange={(e) =>
+            handleData(
+              "phone",
+              e.target.value.slice(0, 3) === "+20"
+                ? isNaN(Number(e.target.value.slice(3)))
+                  ? data.phone
+                  : e.target.value
+                : data.phone
+            )
+          }
+          variant={"filled"}
+          label={trans.inputs.phone}
         />
         {!initialData && (
           <TextField
@@ -110,39 +130,41 @@ export default function UserForm({
             value={data.password}
             onChange={(e) => handleData("password", e.target.value)}
             variant={"filled"}
-            label={"Password"}
+            label={trans.inputs.password}
           />
         )}
-        <FormControl fullWidth className="!text-darkgreen">
-          <InputLabel id="select-label2">Role</InputLabel>
-          <Select
-            labelId="select-label2"
-            value={data.role_id || ""}
-            onChange={(e) => handleData("role_id", e.target.value)}
-            className="!text-darkgreen !font-[600]"
-            label="Role"
-            MenuProps={{
-              sx: { zIndex: 5001 },
-              PaperProps: {
-                sx: { zIndex: 5001 },
-              },
-              container: typeof window !== "undefined" ? document.body : undefined,
-            }}
-            sx={{
-              color: "darkgreen",
-              fontWeight: 600,
-              "& .MuiSvgIcon-root": {
+        {!initialData && (
+          <FormControl fullWidth className="!text-darkgreen">
+            <InputLabel id="select-label2">{trans.inputs.role}</InputLabel>
+            <Select
+              labelId="select-label2"
+              value={data.role_id || ""}
+              onChange={(e) => handleData("role_id", e.target.value)}
+              className="!text-lightgreen !font-[600]"
+              label={trans.inputs.role}
+              MenuProps={{
+                sx: { zIndex: 999999 },
+                PaperProps: {
+                  sx: { zIndex: 999999 },
+                },
+                container: typeof window !== "undefined" ? document.body : undefined,
+              }}
+              sx={{
                 color: "darkgreen",
-              },
-            }}
-          >
-            {roles.map((e) => (
-              <MenuItem key={e.id} className="hover:bg-xlightgreen! !font-[600]" value={e.id}>
-                {e.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+                fontWeight: 600,
+                "& .MuiSvgIcon-root": {
+                  color: "darkgreen",
+                },
+              }}
+            >
+              {roles?.map((e) => (
+                <MenuItem key={e.id} className="hover:bg-xlightgreen! !font-[600]" value={e.id}>
+                  {e.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
       </div>
       <Button disabled={!!initialData} onClick={handleConfirm} variant="contained">
         Confirm

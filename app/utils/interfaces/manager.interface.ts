@@ -1,7 +1,7 @@
 import { ClientComplaintInterface } from "./clients.interface";
 
 export interface ManagerComplaintInterface extends ClientComplaintInterface {
-  user: {
+  client: {
     id: string;
     user_name: string;
   };
@@ -10,11 +10,12 @@ export interface ManagerComplaintInterface extends ClientComplaintInterface {
     tenant_id: string;
     index: number;
     //* SUPPORTER
-    user: {
+    supporter: {
       id: string;
       user_name: string;
     };
     accept_status: string;
+    intervention_date: Date | null;
     choice_taked_at: Date;
     created_at: Date;
   }[];
