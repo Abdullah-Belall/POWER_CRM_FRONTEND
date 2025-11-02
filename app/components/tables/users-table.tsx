@@ -27,6 +27,7 @@ export default function UsersTable({
   const formateData = data?.map((e) => ({
     ...e,
     email: checkNull(e.email, "-"),
+    phone: e.phone === "+20" ? "-" : e.phone,
     created_at: formatDate(e.created_at),
   }));
 

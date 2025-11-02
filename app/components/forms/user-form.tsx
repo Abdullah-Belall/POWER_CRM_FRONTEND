@@ -56,7 +56,7 @@ export default function UserForm({
         return false;
       }
     }
-    if (phone.trim().length !== 13) {
+    if (phone.trim() !== "+20" && phone.trim().length !== 13) {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, "Invaild phone number");
       return false;
     }
@@ -84,7 +84,7 @@ export default function UserForm({
     if (loading) return;
     if (!vaildation()) return;
     setLoading(true);
-    await onConfirm({ data });
+    await onConfirm({ data: { ...data, phone: data.phone === "+20" ? undefined : data.phone } });
     setLoading(false);
   };
   const trans = useAppSelector(getPageTrans("managersUsersPage")).popup;

@@ -222,7 +222,7 @@ const initialState: LangState = {
         inputs: {
           userName: "User Name",
           email: "Email Address *",
-          phone: "Phone",
+          phone: "Phone *",
           password: "Password",
           role: "Role",
           btn: "Confirm",
@@ -385,7 +385,7 @@ const initialState: LangState = {
         inputs: {
           userName: "اسم المستخدم",
           email: "* البريد الالكتروني",
-          phone: "الهاتف",
+          phone: "* الهاتف",
           password: "كلمة المرور",
           role: "الصلاحية",
           btn: "تأكيد",
