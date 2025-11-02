@@ -198,7 +198,7 @@ export default function Header() {
                 onClick={() => router.push("/profile")}
               >
                 <CgProfile />
-                <span className="text-xs">{trans.dropDownMenu.profile}</span>
+                <span className="text-xs text-nowrap">{trans.dropDownMenu.profile}</span>
               </li>
               <li
                 className="flex gap-2 text-white items-center duration-200 p-2 hover:bg-[#ffffff22] cursor-pointer"
