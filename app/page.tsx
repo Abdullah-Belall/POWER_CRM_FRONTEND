@@ -57,10 +57,14 @@ export default function Home() {
         <p className="text-sm max-w-[430px]">{trans.body}</p>
         <div className="flex items-center gap-2">
           <Button className="!bg-lightgreen !text-white" variant="contained">
-            {trans.btns.learnMore}
+            <a href="https://www.facebook.com/Powersoft.co" target="_blank">
+              {trans.btns.learnMore}
+            </a>
           </Button>
           <Button className="!bg-transparent !text-white !border border-white" variant="contained">
-            {trans.btns.contactUs}
+            <a href="https://power-soft.co/" target="_blank">
+              {trans.btns.contactUs}
+            </a>
           </Button>
         </div>
       </div>
