@@ -8,10 +8,12 @@ export interface AnalyticsInterface {
 
 interface AnalyticsState {
   analytics: AnalyticsInterface[];
+  offSetTop: number;
 }
 
 const initialState: AnalyticsState = {
   analytics: [],
+  offSetTop: 0,
 };
 
 const analyticsSlice = createSlice({
@@ -21,10 +23,13 @@ const analyticsSlice = createSlice({
     fillAnalytics: (state, action: PayloadAction<AnalyticsState>) => {
       state.analytics = action.payload.analytics;
     },
+    setOffsetTop: (state, action: PayloadAction<number>) => {
+      state.offSetTop = action.payload;
+    },
   },
 });
 
-export const { fillAnalytics } = analyticsSlice.actions;
+export const { fillAnalytics, setOffsetTop } = analyticsSlice.actions;
 export const analyticsState = (state: { analytics: AnalyticsState }) => {
   return state.analytics;
 };

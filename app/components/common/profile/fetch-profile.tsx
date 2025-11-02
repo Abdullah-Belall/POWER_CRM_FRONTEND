@@ -123,6 +123,7 @@ export default function FetchProfile() {
       dispatch(
         fillAnalytics({
           analytics,
+          offSetTop: 0,
         })
       );
     }

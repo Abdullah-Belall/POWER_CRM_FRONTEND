@@ -245,8 +245,8 @@ export default function ClientComplaintForm({
 
   return (
     <div dir={getDir(lang)} className="w-2xl bg-[#eee] p-3 rounded-md flex flex-col items-center">
-      <h1 className="text-lg font-semibold text-black mx-auto w-fit">
-        {initialData ? trans.title[1] : trans.title}
+      <h1 className="text-lg font-semibold text-black mx-auto w-fit pb-2">
+        {initialData ? trans.title?.split(" ")[1] : trans.title}
       </h1>
       <div className="w-full flex flex-col items-center max-h-[calc(100dvh-200px)] overflow-y-scroll">
         <div className="w-full my-[15px] px-1 flex flex-col gap-2.5">

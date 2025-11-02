@@ -260,3 +260,31 @@ export const UPDATE_ROLE = async ({ data, id }: any) => {
     };
   }
 };
+
+export const UPLOAD_USERS_EXCEL = async ({ data, role_id }: any) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/users/upload-users-excel?role_id=${role_id}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${getCookie("access_token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response?.data?.done
+      ? { done: true }
+      : { done: false, message: errMsg, status: response.status };
+  } catch (error: any) {
+    let message = errMsg;
+    if (error?.response?.status !== 400) {
+    }
+    message = error?.response?.data?.message;
+    return {
+      done: false,
+      message: message,
+      status: error.status,
+    };
+  }
+};

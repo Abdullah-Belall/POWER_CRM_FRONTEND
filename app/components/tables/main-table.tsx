@@ -1,4 +1,6 @@
 "use client";
+import { useAppSelector } from "@/app/utils/store/hooks";
+import { analyticsState } from "@/app/utils/store/slices/analytics-slice";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -36,9 +38,20 @@ export default function MainTable({
   const getNestedValue = (obj: any, path: string) => {
     return path.split(".").reduce((acc, key) => acc?.[key], obj);
   };
+  const { offSetTop } = useAppSelector(analyticsState);
+
   return (
     <Paper className="!bg-transparent !shadow-2xl" sx={{ width: "100%", overflow: "hidden" }}>
-      <TableContainer className={`${hieght ? hieght : "!h-[58dvh]"}`}>
+      <TableContainer
+        className={hieght ? hieght : ""}
+        sx={
+          !hieght
+            ? {
+                height: `calc(100dvh - ${offSetTop + 70}px - 50px)`,
+              }
+            : undefined
+        }
+      >
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>

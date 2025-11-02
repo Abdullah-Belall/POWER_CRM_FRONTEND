@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@mui/material";
 import CreateComplaintForClient from "../../forms/create-complaint-for-client";
 import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { fillTable, getTable } from "@/app/utils/store/slices/tables-data-slice";
 
 export default function ManagersComplaintsPage() {
   const router = useRouter();
@@ -22,11 +23,19 @@ export default function ManagersComplaintsPage() {
   const createComplaintForClient = useAppSelector((state) =>
     selectPopup(state, "createComplaintForClient")
   );
-  const [data, setData] = useState<ManagerComplaintInterface[]>([]);
+  const { data } = useAppSelector(getTable("managerComplaintsTable"));
   const fetchData = async () => {
     const res = await CLIENT_COLLECTOR_REQ(MANAGERS_COMPLAINTS);
     if (res.done) {
-      setData(res.data?.complaints);
+      dispatch(
+        fillTable({
+          tableName: "managerComplaintsTable",
+          obj: {
+            total: res.data?.total,
+            data: res.data?.complaints,
+          },
+        })
+      );
     } else {
       router.push("/sign-in");
     }

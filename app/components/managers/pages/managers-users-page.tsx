@@ -1,23 +1,24 @@
 "use client";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { useEffect, useState } from "react";
-import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
+import { closePopup, openPopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import AllUsersTable from "../../tables/all-users-table";
 import { Button } from "@mui/material";
 import BlackLayer from "../../common/black-layer/black-layer";
 import UserForm from "../../forms/user-form";
 import { useRouter } from "next/navigation";
-import { UserInterface } from "@/app/utils/interfaces/user-interface";
 import { CLIENT_COLLECTOR_REQ } from "@/app/utils/requests-hub/common-reqs";
 import { GET_USERS } from "@/app/utils/requests-hub/supporters-reqs";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
 import { ADD_USER } from "@/app/utils/requests-hub/managers-reqs";
 import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { fillTable, getTable } from "@/app/utils/store/slices/tables-data-slice";
+import UploadUserExcelFile from "../../forms/upload-user-excel-file";
 
 export default function ManagersUsersPage() {
   const router = useRouter();
-  const [data, setData] = useState<UserInterface[]>([]);
   const [openForm, setOpenForm] = useState(false);
+  const { data } = useAppSelector(getTable("managerUsersTable"));
   const dispatch = useAppDispatch();
   const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
     dispatch(
@@ -30,9 +31,16 @@ export default function ManagersUsersPage() {
   const managerUserDetails = useAppSelector((state) => selectPopup(state, "managerUserDetails"));
   const fetchData = async () => {
     const res = await CLIENT_COLLECTOR_REQ(GET_USERS);
-    console.log(res);
     if (res.done) {
-      setData(res.data.users);
+      dispatch(
+        fillTable({
+          tableName: "managerUsersTable",
+          obj: {
+            total: res.data.total,
+            data: res.data.users,
+          },
+        })
+      );
     } else {
       router.push("/sign-in");
     }
@@ -40,33 +48,8 @@ export default function ManagersUsersPage() {
   useEffect(() => {
     fetchData();
   }, []);
-  const analytics = [
-    {
-      title: "Total Users",
-      value: data.length.toString(),
-      lastMonth: 10,
-      onclick: () => "",
-    },
-    {
-      title: "New Clients",
-      value: "12",
-      lastMonth: 15,
-      onclick: () => "",
-    },
-    {
-      title: "Complaints",
-      value: "32",
-      lastMonth: -10,
-      onclick: () => "",
-    },
-    {
-      title: "Opened Complaints",
-      value: "3",
-      lastMonth: -10,
-      onclick: () => "",
-    },
-  ];
   const trans = useAppSelector(getPageTrans("managersUsersPage"));
+  const uploadUserExcelFile = useAppSelector((state) => selectPopup(state, "uploadUserExcelFile"));
   return (
     <>
       <div className="flex gap-[20px]">
@@ -75,9 +58,26 @@ export default function ManagersUsersPage() {
             <div>
               <h1 className="font-bold text-xl text-white">{trans.title}</h1>
             </div>
-            <Button onClick={() => setOpenForm(true)} variant="contained">
-              {trans.btn}
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                onClick={() =>
+                  dispatch(
+                    openPopup({
+                      popup: "uploadUserExcelFile",
+                      data: {
+                        refetchUsers: fetchData,
+                      },
+                    })
+                  )
+                }
+                variant="contained"
+              >
+                {trans.uploadExcelFileBtn}
+              </Button>
+              <Button onClick={() => setOpenForm(true)} variant="contained">
+                {trans.btn}
+              </Button>
+            </div>
           </div>
           <AllUsersTable data={data} popup={"managerUserDetails"} />
         </div>
@@ -112,6 +112,11 @@ export default function ManagersUsersPage() {
             }}
             onConfirm={async () => {}}
           />
+        </BlackLayer>
+      )}
+      {uploadUserExcelFile.isOpen && (
+        <BlackLayer onClick={() => dispatch(closePopup({ popup: "uploadUserExcelFile" }))}>
+          <UploadUserExcelFile />
         </BlackLayer>
       )}
     </>

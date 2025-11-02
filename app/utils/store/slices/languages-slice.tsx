@@ -53,6 +53,7 @@ interface ClientsComplaintsPageInterface {
 interface ManagersUsersPageInterface {
   title: string;
   btn: string;
+  uploadExcelFileBtn: string;
   table: [string, string, string, string, string, string, string];
   popup: {
     title: {
@@ -211,6 +212,7 @@ const initialState: LangState = {
     managersUsersPage: {
       title: "All Users",
       btn: "New User",
+      uploadExcelFileBtn: "Upload Excel File",
       table: ["User", "Phone", "Email", "Role", "Complaints Count", "Solving Count", "Created At"],
       popup: {
         title: {
@@ -365,6 +367,7 @@ const initialState: LangState = {
     managersUsersPage: {
       title: "كل المستخدمين",
       btn: "مستخدم جديد",
+      uploadExcelFileBtn: "رفع ملف Excel",
       table: [
         "المستخدم",
         "الهاتف",

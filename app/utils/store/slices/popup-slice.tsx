@@ -20,6 +20,7 @@ interface PopupState {
   notifiRefetch: PopupInterface;
   assignSupporter: PopupInterface;
   refereToSupporter: PopupInterface;
+  uploadUserExcelFile: PopupInterface;
 }
 
 const initialState: PopupState = {
@@ -37,6 +38,7 @@ const initialState: PopupState = {
   notifiRefetch: { isOpen: false },
   assignSupporter: { isOpen: false },
   refereToSupporter: { isOpen: false },
+  uploadUserExcelFile: { isOpen: false },
 };
 
 const popupSlice = createSlice({

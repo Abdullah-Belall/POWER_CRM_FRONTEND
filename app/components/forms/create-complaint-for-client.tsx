@@ -21,6 +21,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { PickerValue } from "@mui/x-date-pickers/internals";
+import { fillTable, getTable } from "@/app/utils/store/slices/tables-data-slice";
 
 export default function CreateComplaintForClient({
   closeForm,
@@ -45,7 +46,6 @@ export default function CreateComplaintForClient({
     image2: "",
   });
   const [time, setTime] = useState<PickerValue | null>(null);
-  const [clients, setClients] = useState<UserInterface[]>([]);
   const [imgLoading, setImageLoading] = useState(false);
   const imgEle = useRef<any>(null);
   const imgEle2 = useRef<any>(null);
@@ -213,13 +213,25 @@ export default function CreateComplaintForClient({
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, res.message);
     }
   };
+  const createComplaintForClientUsersTable = useAppSelector(
+    getTable("createComplaintForClientUsersTable")
+  );
+  const clients = createComplaintForClientUsersTable.data;
   useEffect(() => {
     const fetchClients = async () => {
       const res = await CLIENT_COLLECTOR_REQ(GET_USERS, {
         roleAttributes: JSON.stringify(["create-complaint"]),
       });
       if (res.done) {
-        setClients(res.data?.users);
+        dispatch(
+          fillTable({
+            tableName: "createComplaintForClientUsersTable",
+            obj: {
+              total: res.data?.total,
+              data: res.data?.users,
+            },
+          })
+        );
       }
     };
     fetchClients();

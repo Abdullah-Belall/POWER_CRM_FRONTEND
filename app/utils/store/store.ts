@@ -4,6 +4,8 @@ import snakeBarReducer from "./slices/snake-bar-slice";
 import analyticsReducer from "./slices/analytics-slice";
 import popupReducer from "./slices/popup-slice";
 import languageReducer from "./slices/languages-slice";
+import tableDataReducer from "./slices/tables-data-slice";
+import searchReducer from "./slices/search-slice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +14,8 @@ export const store = configureStore({
     analytics: analyticsReducer,
     popup: popupReducer,
     language: languageReducer,
+    tableData: tableDataReducer,
+    search: searchReducer,
   },
   // Performance optimizations
   middleware: (getDefaultMiddleware) =>
@@ -19,11 +23,11 @@ export const store = configureStore({
       // Disable serializable check for better performance
       serializableCheck: {
         ignoredActions: ["persist/PERSIST", "persist/REHYDRATE", "analytics/fillAnalytics"],
-        ignoredPaths: ["user", "snakeBar", "analytics", "popup", "language"],
+        ignoredPaths: ["user", "snakeBar", "analytics", "popup", "language", "tableData", "search"],
       },
       // Disable immutable check for better performance
       immutableCheck: {
-        ignoredPaths: ["user", "snakeBar", "analytics", "popup", "language"],
+        ignoredPaths: ["user", "snakeBar", "analytics", "popup", "language", "tableData", "search"],
       },
     }),
   devTools: process.env.NODE_ENV !== "production",
