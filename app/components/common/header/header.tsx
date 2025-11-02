@@ -6,7 +6,7 @@ import { CiSearch } from "react-icons/ci";
 import { Avatar, Button, ButtonGroup } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { selectCurrentUser } from "@/app/utils/store/slices/user-slice";
-import { FaFacebookF, FaLinkedinIn, FaPhone, FaSignOutAlt } from "react-icons/fa";
+import { FaSignOutAlt } from "react-icons/fa";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ import Image from "next/image";
 import logo from "@/public/LOGUP.png";
 import { changeLang, getCurrLang, getPageTrans } from "@/app/utils/store/slices/languages-slice";
 import { getDir } from "@/app/utils/base";
+import { CgProfile } from "react-icons/cg";
 
 export default function Header() {
   const router = useRouter();
@@ -109,7 +110,7 @@ export default function Header() {
     <>
       <header
         dir={getDir(lang)}
-        className="w-full bg-[#072632]s rounded-b-2xl text-white z-[9] h-[15dvh] fixed top-0 left-0 overflow-visible"
+        className="w-full rounded-b-2xl text-white z-[9] h-[15dvh] fixed top-0 left-0 overflow-visible"
       >
         <div className="w-full fixed top-0 left-0 mt-[40px]s px-3 pt-3 flex items-center justify-between">
           <div className="flex gap-10 items-center justify-between">
@@ -182,6 +183,7 @@ export default function Header() {
       {typeof window !== "undefined" && isMenuOpen && menuPos
         ? createPortal(
             <ul
+              dir={getDir(lang)}
               ref={menuRef}
               style={{
                 position: "fixed",
@@ -189,10 +191,17 @@ export default function Header() {
                 left: menuPos.left,
                 width: menuPos.width,
               }}
-              className="flex flex-col bg-xlightgreen overflow-hidden rounded-md shadow-2xl z-[200]"
+              className="flex flex-col bg-lightgreen overflow-hidden rounded-md shadow-2xl z-[200]"
             >
               <li
-                className="flex gap-2 text-darkgreen items-center duration-200 p-2 hover:bg-[#ffffff22] cursor-pointer"
+                className="flex gap-2 text-white items-center duration-200 p-2 hover:bg-[#ffffff22] cursor-pointer"
+                onClick={() => router.push("/profile")}
+              >
+                <CgProfile />
+                <span className="text-xs">{trans.dropDownMenu.profile}</span>
+              </li>
+              <li
+                className="flex gap-2 text-white items-center duration-200 p-2 hover:bg-[#ffffff22] cursor-pointer"
                 onClick={handleSignOut}
               >
                 <FaSignOutAlt />

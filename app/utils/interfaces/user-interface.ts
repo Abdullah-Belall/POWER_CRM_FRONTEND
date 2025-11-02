@@ -5,6 +5,7 @@ export interface UserInterface {
   id: string;
   index: number;
   user_name: string;
+  password: string;
   phone: string;
   email: string;
   role: RoleInterface;

@@ -130,6 +130,16 @@ interface HeaderInterface {
     signOut: string;
   };
 }
+interface ProfileInterface {
+  title: string;
+  user_name: string;
+  passwordForm: {
+    oldPass: string;
+    newPass: string;
+    confirmNewPass: string;
+    btn: string;
+  };
+}
 
 interface pages {
   signInPage: SignInPageInterface;
@@ -146,6 +156,7 @@ interface pages {
     managerAnalytics: [string, string, string, string];
     vsLast: string;
   };
+  profile: ProfileInterface;
 }
 
 interface LangState {
@@ -317,6 +328,16 @@ const initialState: LangState = {
       ],
       vsLast: "vs last month",
     },
+    profile: {
+      title: "Your Profile",
+      user_name: "User",
+      passwordForm: {
+        oldPass: "Current Password",
+        newPass: "New Password",
+        confirmNewPass: "Confirm New Password",
+        btn: "Confirm",
+      },
+    },
   },
   ar: {
     signInPage: {
@@ -479,6 +500,16 @@ const initialState: LangState = {
         "الشكاوى ذات الأولوية العالية",
       ],
       vsLast: "مقارنة بالشهر الماضي",
+    },
+    profile: {
+      title: "ملفك الشخصي",
+      user_name: "المستخدم",
+      passwordForm: {
+        oldPass: "كلمة المرور الحالية",
+        newPass: "كلمة المرور الجديدة",
+        confirmNewPass: "تأكيد كلمة المرور الجديدة",
+        btn: "تأكيد",
+      },
     },
   },
 };

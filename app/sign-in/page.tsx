@@ -1,7 +1,5 @@
 "use client";
 import { Button, ButtonGroup, TextField } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../utils/store/hooks";
 import { openSnakeBar, SnakeBarTypeEnum } from "../utils/store/slices/snake-bar-slice";
@@ -9,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { setCurrentUser } from "../utils/store/slices/user-slice";
 import { setCookie } from "../utils/requests/refresh-token-req";
 import { changeLang, getPageTrans } from "../utils/store/slices/languages-slice";
+import { SIGN_IN } from "../utils/requests-hub/common-reqs";
 
 export default function SignIn() {
   const trans = useAppSelector(getPageTrans("signInPage"));
@@ -50,35 +49,9 @@ export default function SignIn() {
     );
   };
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: typeof data) => {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/sign-in`,
-        payload,
-        {
-          withCredentials: true,
-        }
-      );
-      return res.data;
-    },
-    onSuccess: (res) => {
-      dispatch(
-        setCurrentUser({
-          ...res?.user,
-        })
-      );
-      router.push("/");
-      setCookie("access_token", res.access_token);
-      handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Signed In successfully");
-    },
-    onError: (error: any) => {
-      console.log(error);
-      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, error.response.data.message);
-    },
-  });
-
-  const handleSignIn = () => {
-    if (isPending) return;
+  const [loading, setLoading] = useState(false);
+  const handleSignIn = async () => {
+    if (loading) return;
     const { user_name, password } = data;
     if (user_name.length < 4) {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, "No user found with this info");
@@ -88,10 +61,26 @@ export default function SignIn() {
       handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, "Incorrect password");
       return;
     }
-    return mutate({
-      ...data,
-      tenant_domain: data.tenant_domain === "localhost" ? "localhost.com" : data.tenant_domain,
+    setLoading(true);
+    const res = await SIGN_IN({
+      data: {
+        ...data,
+        tenant_domain: data.tenant_domain === "localhost" ? "localhost.com" : data.tenant_domain,
+      },
     });
+    setLoading(false);
+    if (res.done) {
+      handleOpenSnakeBar(SnakeBarTypeEnum.SUCCESS, "Signed In successfully");
+      dispatch(
+        setCurrentUser({
+          ...res.data?.user,
+        })
+      );
+      setCookie("access_token", res.data.access_token);
+      router.push(data.password === "123456789" ? "/profile" : "/");
+    } else {
+      handleOpenSnakeBar(SnakeBarTypeEnum.ERROR, res.message as string);
+    }
   };
   const handlechangeLang = (lang: "ar" | "en") => {
     dispatch(
@@ -135,7 +124,7 @@ export default function SignIn() {
             variant={"filled"}
             label={trans.lables.password}
           />
-          <Button disabled={isPending} onClick={handleSignIn} variant="contained">
+          <Button disabled={loading} onClick={handleSignIn} variant="contained">
             {trans.btn}
           </Button>
         </div>

@@ -9,9 +9,31 @@ export const SIGN_OUT = async () => {
       headers: {
         Authorization: `Bearer ${getCookie("access_token")}`,
       },
+      withCredentials: true,
     });
     return response?.data?.done
       ? { done: true }
+      : { done: false, message: errMsg, status: response.status };
+  } catch (error: any) {
+    let message = errMsg;
+    if (error?.response?.status !== 400) {
+    }
+    message = error?.response?.data?.message;
+    return {
+      done: false,
+      message: message,
+      status: error.status,
+    };
+  }
+};
+
+export const SIGN_IN = async ({ data }: any) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/auth/sign-in`, data, {
+      withCredentials: true,
+    });
+    return response?.data?.done
+      ? { done: true, data: response.data.user }
       : { done: false, message: errMsg, status: response.status };
   } catch (error: any) {
     let message = errMsg;
@@ -81,6 +103,29 @@ export const CREATE_COMPLAINT = async ({ data }: any) => {
     });
     return response?.data?.id
       ? { done: true, data: response.data }
+      : { done: false, message: errMsg, status: response.status };
+  } catch (error: any) {
+    let message = errMsg;
+    if (error?.response?.status !== 400) {
+    }
+    message = error?.response?.data?.message;
+    return {
+      done: false,
+      message: message,
+      status: error.status,
+    };
+  }
+};
+
+export const CHANGE_PASSWORD = async ({ data }: any) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/auth/change-password`, data, {
+      headers: {
+        Authorization: `Bearer ${getCookie("access_token")}`,
+      },
+    });
+    return response?.data?.done
+      ? { done: true }
       : { done: false, message: errMsg, status: response.status };
   } catch (error: any) {
     let message = errMsg;

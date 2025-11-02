@@ -34,7 +34,7 @@ export default function RootLayout({
               <FetchProfile />
               {pathName !== "/sign-in" ? (
                 <>
-                  {pathName !== "/" ? <Analytics /> : ""}
+                  {pathName !== "/" && pathName !== "/profile" ? <Analytics /> : ""}
                   <Header />
                   <SideBar />{" "}
                 </>
