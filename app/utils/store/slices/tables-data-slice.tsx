@@ -2,6 +2,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserInterface } from "../../interfaces/user-interface";
 import { RootState } from "../store";
 import { ManagerComplaintInterface } from "../../interfaces/manager.interface";
+import { RoleInterface } from "../../interfaces/common.interface";
+import { ClientComplaintInterface } from "../../interfaces/clients.interface";
 
 interface TablesDataState {
   managerUsersTable: {
@@ -16,6 +18,14 @@ interface TablesDataState {
     total: number;
     data: UserInterface[];
   };
+  managerRolesTable: {
+    total: number;
+    data: RoleInterface[];
+  };
+  clientComplaintsTable: {
+    total: number;
+    data: ClientComplaintInterface[];
+  };
 }
 
 const initialState: TablesDataState = {
@@ -28,6 +38,14 @@ const initialState: TablesDataState = {
     data: [],
   },
   createComplaintForClientUsersTable: {
+    total: 0,
+    data: [],
+  },
+  managerRolesTable: {
+    total: 0,
+    data: [],
+  },
+  clientComplaintsTable: {
     total: 0,
     data: [],
   },

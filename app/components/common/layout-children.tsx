@@ -1,10 +1,12 @@
 "use client";
 import { cairo } from "@/app/utils/fonts/cairo";
-import { useAppSelector } from "@/app/utils/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { analyticsState } from "@/app/utils/store/slices/analytics-slice";
 import { getCurrLang } from "@/app/utils/store/slices/languages-slice";
 import { selectPopup } from "@/app/utils/store/slices/popup-slice";
+import { resetDataSearch } from "@/app/utils/store/slices/search-slice";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LayoutChildren({
   children,

@@ -13,7 +13,7 @@ interface AnalyticsState {
 
 const initialState: AnalyticsState = {
   analytics: [],
-  offSetTop: 0,
+  offSetTop: 200,
 };
 
 const analyticsSlice = createSlice({

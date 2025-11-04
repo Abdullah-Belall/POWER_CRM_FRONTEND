@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@mui/material";
 import CreateComplaintForClient from "../../forms/create-complaint-for-client";
 import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { resetDataSearch } from "@/app/utils/store/slices/search-slice";
+import { MdOutlineRefresh } from "react-icons/md";
 
 export default function SupportersComplaintsPage() {
   const router = useRouter();
@@ -33,8 +35,10 @@ export default function SupportersComplaintsPage() {
 
   useEffect(() => {
     fetchData();
+    dispatch(resetDataSearch());
   }, []);
   const trans = useAppSelector(getPageTrans("managersComplaintsPage"));
+  const [refetchLoading, setRefetchLoading] = useState(false);
   return (
     <>
       <div className="flex gap-[20px]">
@@ -43,9 +47,24 @@ export default function SupportersComplaintsPage() {
             <div>
               <h1 className="font-bold text-xl text-white pb-2">{trans.title}</h1>
             </div>
-            <Button onClick={() => setCreateNewPopup(true)} variant="contained">
-              {trans.btn}
-            </Button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (refetchLoading) return;
+                  setRefetchLoading(true);
+                  fetchData();
+                  setRefetchLoading(false);
+                }}
+                className={`${
+                  refetchLoading ? "animate-spin" : ""
+                } cursor-pointer text-white text-2xl bg-lightgreen rounded-full px-1.5`}
+              >
+                <MdOutlineRefresh />
+              </button>
+              <Button onClick={() => setCreateNewPopup(true)} variant="contained">
+                {trans.btn}
+              </Button>
+            </div>
           </div>
           <ManagerComplaintsTable data={data} popup={"supporterComplaintDetails"} />
         </div>

@@ -91,6 +91,7 @@ interface ManagersRolesPageInterface {
 interface ManagersComplaintsPageInterface {
   title: string;
   btn: string;
+  reportBtn: string;
   table: [string, string, string, string, string, string, string, string, string];
   popup: {
     title: {
@@ -121,6 +122,15 @@ interface ManagersComplaintsPageInterface {
     btn: string;
     referBtn: string;
   };
+  reportPopup: {
+    title: string;
+    fromDate: string;
+    toDate: string;
+    status: string;
+    sorted_by: string;
+    user: string;
+    btn: string;
+  };
 }
 
 interface HeaderInterface {
@@ -140,6 +150,10 @@ interface ProfileInterface {
     btn: string;
   };
 }
+interface SearchInterface {
+  placeholder: string;
+  selectCol: string;
+}
 
 interface pages {
   signInPage: SignInPageInterface;
@@ -157,6 +171,7 @@ interface pages {
     vsLast: string;
   };
   profile: ProfileInterface;
+  search: SearchInterface;
 }
 
 interface LangState {
@@ -259,6 +274,7 @@ const initialState: LangState = {
     managersComplaintsPage: {
       title: "All Complaints",
       btn: "Create Complaint",
+      reportBtn: "Create Report",
       table: [
         "Company",
         "complainant",
@@ -299,6 +315,15 @@ const initialState: LangState = {
         btn: "Assign",
         referBtn: "Refere",
       },
+      reportPopup: {
+        title: "Create Company Complaints Report",
+        fromDate: "From",
+        toDate: "To",
+        status: "Status",
+        sorted_by: "Ordered",
+        user: "Company",
+        btn: "Create",
+      },
     },
     header: {
       sentence: ["Welcome Back,", "Here are latest updates on your", "Dashboard"],
@@ -337,6 +362,10 @@ const initialState: LangState = {
         confirmNewPass: "Confirm New Password",
         btn: "Confirm",
       },
+    },
+    search: {
+      placeholder: "Search...",
+      selectCol: "Select Column",
     },
   },
   ar: {
@@ -432,6 +461,7 @@ const initialState: LangState = {
     managersComplaintsPage: {
       title: "كل الشكاوي",
       btn: "انشاء شكوي",
+      reportBtn: "انشاء تقرير",
       table: [
         "الشركة",
         "مقدم الشكوي",
@@ -472,6 +502,15 @@ const initialState: LangState = {
         btn: "تكليف",
         referBtn: "توجيه",
       },
+      reportPopup: {
+        title: "انشاء تقرير شكاوى لشركة",
+        fromDate: "من",
+        toDate: "الي",
+        status: "الحالة",
+        sorted_by: "ترتيب",
+        user: "الشركة",
+        btn: "انشاء",
+      },
     },
     header: {
       sentence: ["اهلا بعودتك,", "فيما يلي آخر التحديثات على", "لوحة تحكمك"],
@@ -510,6 +549,10 @@ const initialState: LangState = {
         confirmNewPass: "تأكيد كلمة المرور الجديدة",
         btn: "تأكيد",
       },
+    },
+    search: {
+      placeholder: "بحث...",
+      selectCol: "حدد عمود",
     },
   },
 };

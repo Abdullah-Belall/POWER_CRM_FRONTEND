@@ -1,6 +1,6 @@
 "use client";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { closePopup, openPopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
 import AllUsersTable from "../../tables/all-users-table";
 import { Button } from "@mui/material";
@@ -11,15 +11,19 @@ import { CLIENT_COLLECTOR_REQ } from "@/app/utils/requests-hub/common-reqs";
 import { GET_USERS } from "@/app/utils/requests-hub/supporters-reqs";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
 import { ADD_USER } from "@/app/utils/requests-hub/managers-reqs";
-import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { getCurrLang, getPageTrans } from "@/app/utils/store/slices/languages-slice";
 import { fillTable, getTable } from "@/app/utils/store/slices/tables-data-slice";
 import UploadUserExcelFile from "../../forms/upload-user-excel-file";
+import { fillInitialDataSearch, setSearchColumns } from "@/app/utils/store/slices/search-slice";
+import { MdOutlineRefresh } from "react-icons/md";
 
 export default function ManagersUsersPage() {
   const router = useRouter();
+  const trans = useAppSelector(getPageTrans("managersUsersPage"));
   const [openForm, setOpenForm] = useState(false);
   const { data } = useAppSelector(getTable("managerUsersTable"));
   const dispatch = useAppDispatch();
+  const lang = useAppSelector(getCurrLang());
   const handleOpenSnakeBar = (type: SnakeBarTypeEnum, message: string) => {
     dispatch(
       openSnakeBar({
@@ -45,20 +49,70 @@ export default function ManagersUsersPage() {
       router.push("/sign-in");
     }
   };
+  const searchColumns = useMemo(() => {
+    return [
+      {
+        alias: "u.user_name",
+        slug: trans.table[0],
+      },
+      {
+        alias: "u.phone",
+        slug: trans.table[1],
+      },
+      {
+        alias: "u.email",
+        slug: trans.table[2],
+      },
+    ];
+  }, [lang]);
+  const searchObj = {
+    search_in: "users",
+    columns: searchColumns,
+    fillFunc: (obj: { total: number; data: any[] }) => {
+      dispatch(
+        fillTable({
+          tableName: "managerUsersTable",
+          obj,
+        })
+      );
+    },
+  };
   useEffect(() => {
     fetchData();
+    dispatch(fillInitialDataSearch(searchObj));
   }, []);
-  const trans = useAppSelector(getPageTrans("managersUsersPage"));
+  useEffect(() => {
+    dispatch(
+      setSearchColumns({
+        columns: searchColumns,
+      })
+    );
+  }, [lang]);
   const uploadUserExcelFile = useAppSelector((state) => selectPopup(state, "uploadUserExcelFile"));
+  const [refetchLoading, setRefetchLoading] = useState(false);
   return (
     <>
       <div className="flex gap-[20px]">
-        <div className="w-full flex flex-col gap-[10px]">
+        <div className="w-full flex flex-col gap-[3px]">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="font-bold text-xl text-white">{trans.title}</h1>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (refetchLoading) return;
+                  setRefetchLoading(true);
+                  fetchData();
+                  dispatch(fillInitialDataSearch(searchObj));
+                  setRefetchLoading(false);
+                }}
+                className={`${
+                  refetchLoading ? "animate-spin" : ""
+                } cursor-pointer text-white text-2xl bg-lightgreen rounded-full px-1.5`}
+              >
+                <MdOutlineRefresh />
+              </button>
               <Button
                 onClick={() =>
                   dispatch(

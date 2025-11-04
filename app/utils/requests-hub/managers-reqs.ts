@@ -25,9 +25,13 @@ export const GET_COMPLAINT = async ({ complaint_id }: { complaint_id: string }) 
   }
 };
 
-export const MANAGERS_COMPLAINTS = async () => {
+export const MANAGERS_COMPLAINTS = async (data: any) => {
+  const query: string[] = [];
+  data?.queries?.forEach((e: any) => {
+    query.push(`${e.key}=${e.value}`);
+  });
   try {
-    const response = await axios.get(`${BASE_URL}/complaints/managers`, {
+    const response = await axios.get(`${BASE_URL}/complaints/managers?${query?.join("&")}`, {
       headers: {
         Authorization: `Bearer ${getCookie("access_token")}`,
       },

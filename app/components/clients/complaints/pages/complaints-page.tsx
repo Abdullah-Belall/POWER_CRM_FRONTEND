@@ -6,11 +6,13 @@ import { ClientComplaintInterface } from "@/app/utils/interfaces/clients.interfa
 import { CLIENT_COMPLAINTS } from "@/app/utils/requests-hub/clients-reqs";
 import { CLIENT_COLLECTOR_REQ, CREATE_COMPLAINT } from "@/app/utils/requests-hub/common-reqs";
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
-import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { getCurrLang, getPageTrans } from "@/app/utils/store/slices/languages-slice";
 import { closePopup, selectPopup } from "@/app/utils/store/slices/popup-slice";
+import { fillInitialDataSearch, setSearchColumns } from "@/app/utils/store/slices/search-slice";
 import { openSnakeBar, SnakeBarTypeEnum } from "@/app/utils/store/slices/snake-bar-slice";
+import { fillTable } from "@/app/utils/store/slices/tables-data-slice";
 import { Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function ComplaintsPage() {
   const trans = useAppSelector(getPageTrans("clientsComplaintsPage"));
@@ -36,9 +38,50 @@ export default function ComplaintsPage() {
       // router.push("/sign-in");
     }
   };
+  const lang = useAppSelector(getCurrLang());
+  const searchColumns = useMemo(() => {
+    return [
+      {
+        alias: "complaint.full_name",
+        slug: trans.table[0],
+      },
+      {
+        alias: "complaint.phone",
+        slug: trans.table[1],
+      },
+      {
+        alias: "complaint.title",
+        slug: trans.table[2],
+      },
+      {
+        alias: "complaint.details",
+        slug: trans.table[3],
+      },
+    ];
+  }, [lang]);
+  const searchObj = {
+    search_in: "complaints",
+    columns: searchColumns,
+    fillFunc: (obj: { total: number; data: any[] }) => {
+      dispatch(
+        fillTable({
+          tableName: "clientComplaintsTable",
+          obj,
+        })
+      );
+    },
+  };
   useEffect(() => {
     fetchData();
+    dispatch(fillInitialDataSearch(searchObj));
   }, []);
+  useEffect(() => {
+    dispatch(
+      setSearchColumns({
+        columns: searchColumns,
+      })
+    );
+  }, [lang]);
   const handleCreateComplaint = async (data: any) => {
     const res = await CLIENT_COLLECTOR_REQ(CREATE_COMPLAINT, {
       data,
@@ -55,7 +98,7 @@ export default function ComplaintsPage() {
   return (
     <>
       <div className="flex gap-[20px]">
-        <div className="w-full flex flex-col gap-[10px]">
+        <div className="w-full flex flex-col gap-[3px]">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="font-bold text-xl text-white">{trans.title}</h1>

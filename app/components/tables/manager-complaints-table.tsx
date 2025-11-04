@@ -12,6 +12,9 @@ import {
 import { useAppDispatch, useAppSelector } from "@/app/utils/store/hooks";
 import { openPopup } from "@/app/utils/store/slices/popup-slice";
 import { getPageTrans } from "@/app/utils/store/slices/languages-slice";
+import { useEffect } from "react";
+import { resetDataSearch } from "@/app/utils/store/slices/search-slice";
+import { usePathname } from "next/navigation";
 
 export default function ManagerComplaintsTable({
   data,

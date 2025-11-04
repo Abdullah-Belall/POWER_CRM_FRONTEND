@@ -94,6 +94,46 @@ export const GET_ANALYTICS = async () => {
   }
 };
 
+export const COMMON_SEARCH = async ({
+  body,
+  queries,
+}: {
+  body: {
+    search_in: string;
+    search_with: string;
+    column?: string;
+    created_sort?: "ASC" | "DESC";
+  };
+  queries?: { key: string; value: string }[];
+}) => {
+  const mainQuery: string[] = [];
+  if (queries && queries.length > 0) {
+    for (const query of queries) {
+      mainQuery.push(`${query.key}=${query.value}&`);
+    }
+  }
+  try {
+    const response = await axios.post(`${BASE_URL}/common/common-search?${mainQuery}`, body, {
+      headers: {
+        Authorization: `Bearer ${getCookie("access_token")}`,
+      },
+    });
+    return response?.data?.data
+      ? { done: true, data: response.data }
+      : { done: false, message: errMsg, status: response.status };
+  } catch (error: any) {
+    let message = errMsg;
+    if (error?.response?.status !== 400) {
+    }
+    message = error?.response?.data?.message;
+    return {
+      done: false,
+      message: message,
+      status: error.status,
+    };
+  }
+};
+
 export const CREATE_COMPLAINT = async ({ data }: any) => {
   try {
     const response = await axios.post(`${BASE_URL}/complaints/create`, data, {

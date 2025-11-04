@@ -9,7 +9,7 @@ interface SearchState {
     alias: string | null;
     slug: string | null;
   }[];
-  fillFunc: () => void;
+  fillFunc: (obj: { data: any[]; total: number }) => void;
 }
 
 const initialState: SearchState = {
@@ -17,7 +17,7 @@ const initialState: SearchState = {
   search_in: null,
   search_with: "",
   columns: [],
-  fillFunc: () => {
+  fillFunc: (obj: { data: any[]; total: number }) => {
     ("");
   },
 };
@@ -34,12 +34,14 @@ const searchSlice = createSlice({
           alias: string | null;
           slug: string | null;
         }[];
-        fillFunc: () => void;
+        fillFunc: (obj: { data: any[]; total: number }) => void;
       }>
     ) => {
       state.search_in = action.payload.search_in;
       state.search_with = "";
-      state.columns = action.payload.columns;
+      const columns = action.payload.columns;
+      state.columns =
+        columns && columns.length > 0 ? [{ alias: null, slug: "بحث عام" }, ...columns] : [];
       state.fillFunc = action.payload.fillFunc;
     },
     resetDataSearch: (state) => {
@@ -54,18 +56,41 @@ const searchSlice = createSlice({
     setSearchColumn: (
       state,
       action: PayloadAction<{
-        column: string;
+        column: string | null;
       }>
     ) => {
       state.column = action.payload.column;
     },
-    // startSearch: (state) => {
-
-    // }
+    setSearchColumns: (
+      state,
+      action: PayloadAction<{
+        columns: {
+          alias: string | null;
+          slug: string | null;
+        }[];
+      }>
+    ) => {
+      const columns = action.payload.columns;
+      state.columns =
+        columns && columns.length > 0 ? [{ alias: null, slug: "بحث عام" }, ...columns] : [];
+    },
+    setSearchWith: (
+      state,
+      action: PayloadAction<{
+        search_with: string;
+      }>
+    ) => {
+      state.search_with = action.payload.search_with;
+    },
   },
 });
 
-export const { fillInitialDataSearch, resetDataSearch, setSearchColumn } = searchSlice.actions;
-export const getSearchColumn = () => (state: RootState) => state.search.column;
-export const getSearchColumns = () => (state: RootState) => state.search.columns;
+export const {
+  fillInitialDataSearch,
+  resetDataSearch,
+  setSearchColumn,
+  setSearchWith,
+  setSearchColumns,
+} = searchSlice.actions;
+export const getSearchInfo = () => (state: RootState) => state.search;
 export default searchSlice.reducer;

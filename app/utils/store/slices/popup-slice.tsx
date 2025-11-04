@@ -21,6 +21,7 @@ interface PopupState {
   assignSupporter: PopupInterface;
   refereToSupporter: PopupInterface;
   uploadUserExcelFile: PopupInterface;
+  createComplaintsReport: PopupInterface;
 }
 
 const initialState: PopupState = {
@@ -39,6 +40,7 @@ const initialState: PopupState = {
   assignSupporter: { isOpen: false },
   refereToSupporter: { isOpen: false },
   uploadUserExcelFile: { isOpen: false },
+  createComplaintsReport: { isOpen: false },
 };
 
 const popupSlice = createSlice({

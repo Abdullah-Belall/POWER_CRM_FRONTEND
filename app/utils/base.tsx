@@ -70,6 +70,16 @@ export const ScreenViewer = ({ viewer }: { viewer: ScreenViewerEnum }) => {
       return null;
   }
 };
+
+export const complaintStatuses = [
+  ComplaintStatusEnum.COMPLETED,
+  ComplaintStatusEnum.CANCELLED,
+  ComplaintStatusEnum.IN_PROGRESS,
+  ComplaintStatusEnum.PENDING,
+  ComplaintStatusEnum.CLIENT_CANCELLED,
+  ComplaintStatusEnum.SUSPENDED,
+];
+
 export const ComplaintStatusViewer = ({ status }: { status: ComplaintStatusEnum }) => {
   switch (status) {
     case ComplaintStatusEnum.COMPLETED:
